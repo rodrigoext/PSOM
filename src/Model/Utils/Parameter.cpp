@@ -2,12 +2,12 @@
 
 #include<iostream>
 
-Parameter::Parameter(std::list<std::string> &params)
+Parameter::Parameter(int map_size_x, int map_size_y, int train_length, float max_error)
 {
-	for (std::list<std::string>::iterator it = params.begin(); it != params.end(); ++it)
-	{
-		std::cout << *it << std::endl;
-	}
+	map_x_ = map_size_x;
+	map_y_ = map_size_y;
+	train_len_ = train_length;
+	max_error_ = max_error_;
 }
 
 

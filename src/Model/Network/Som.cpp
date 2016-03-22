@@ -2,13 +2,18 @@
 #include <iostream>
 #include <limits>
 
-
-
 Som::Som(std::shared_ptr<Eigen::MatrixXf> data)
 {
 	data_ = data;
 	CalculateMapSize();
+	DetermineRadiusInitial();
 	//TODO: calculate map size
+}
+
+Som::Som(std::shared_ptr<Eigen::MatrixXf> data, std::shared_ptr<Parameter> params)
+{
+	data_ = data;
+	params_ = params;
 }
 
 void Som::CalculateMapSize()
@@ -20,8 +25,8 @@ void Som::CalculateMapSize()
 	{
 		munits = (int)(5 * pow(data_->rows(), 0.5));
 		data_len = data_->rows();
-		map_x = round(sqrt(munits));
-		map_y = round(munits / map_x);
+		map_x = static_cast<int>(round(sqrt(munits)));
+		map_y = static_cast<int>(round(munits / map_x));
 	}
 	else
 	{
@@ -46,15 +51,18 @@ void Som::CalculateMapSize()
 				}
 			}
 		}
-
-
-		//Eigen::EigenSolver<Eigen::MatrixXf> es(*data_.get());
-		//std::cout << es.eigenvalues() << std::endl;
 	}
-
 	std::cout << "map x: " << map_x << ", map y: " << map_y << std::endl;
 }
 
 Som::~Som()
 {
+}
+
+void Som::DetermineRadiusInitial()
+{
+	int ms = std::max(map_x, map_y);
+	float map_radius_ini = fmaxf(1.0f, ((float)ms / 4));
+	float map_radius_fin = fmaxf(1, (map_radius_ini / 4));
+	int train_len = std::max(1, (int)(10 * ((map_x * map_y) / data_->rows())));
 }

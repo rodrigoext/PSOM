@@ -4,19 +4,18 @@
 #include "Model/Network/Som.h"
 #include "Model/Tests/Test.h"
 #include "Model/Utils/IO.h"
+#include "Model/Utils/Parameter.h"
 
 #include <Eigen/Dense>
 
 int main()
 {
-	Test * t;
-	t = new Test();
-
-	//t->TestLoadData();
 	IO * io = new IO();
-	Eigen::MatrixXf data = io->LoadData("../PSOM/src/Data/chain.csv");
+	Eigen::MatrixXf data = io->LoadData("../PSOM/src/Data/chainlink.csv");
 	
-	Som * som = new Som(std::make_shared<Eigen::MatrixXf>(data));
+	Parameter * params;
+	params = new Parameter(17, 9, 100, 0.01f);
+	Som * som = new Som(std::make_shared<Eigen::MatrixXf>(data), std::make_shared<Parameter>(*params));
 
 	std::cout << "Rodou" << std::endl;
 	system("PAUSE");
