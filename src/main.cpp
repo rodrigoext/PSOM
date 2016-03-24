@@ -6,10 +6,13 @@
 #include "Model/Utils/IO.h"
 #include "Model/Utils/Parameter.h"
 
-#include <Eigen/Dense>
+#include <Eigen/Core>
 
 int main()
 {
+	//Test * t = new Test();
+	//t->TestCodebookGeneration();
+
 	IO * io = new IO();
 	Eigen::MatrixXf data = io->LoadData("../PSOM/src/Data/chainlink.csv");
 	

@@ -1,6 +1,5 @@
 #ifndef NODE_H
 #define NODE_H
-#endif
 
 class Node
 {
@@ -11,4 +10,4 @@ public:
 protected:
 
 };
-
+#endif

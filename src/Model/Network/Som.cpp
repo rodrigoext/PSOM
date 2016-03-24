@@ -14,6 +14,8 @@ Som::Som(std::shared_ptr<Eigen::MatrixXf> data, std::shared_ptr<Parameter> param
 {
 	data_ = data;
 	params_ = params;
+	codebook_.reset(new Codebook(params_->map_x_, params_->map_y_, data_->cols()));
+	std::cout << codebook_->GetWeights() << std::endl;
 }
 
 void Som::CalculateMapSize()
