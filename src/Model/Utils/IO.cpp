@@ -16,8 +16,11 @@ IO::IO()
 MatrixXf IO::LoadData(const char * file_name)
 {
 	vector<vector<float>> data_set = ReadData(file_name);
-	
+
 	MatrixXf data_e = Vector2EingenMatrix(data_set);
+	//std::cout << data_e.row(1) << std::endl;
+	MapMinMax(data_e);
+	//std::cout << data_e << std::endl;
 
 	return data_e;
 }
@@ -71,6 +74,29 @@ vector<vector<float>> IO::ReadData(const char * file_name)
 	}
 
 	return data_float;
+}
+
+void IO::MapMinMax(Eigen::MatrixXf &data)
+{
+	float min = 0.0f;
+	float max = 0.0f;
+
+	float scale_range = 1.0f - (-1.0f);
+	
+
+	for (int i = 0; i < data.cols(); ++i)
+	{
+		min = data.col(i).minCoeff();
+		max = data.col(i).maxCoeff();
+
+		float value_range = max - min;
+
+		for (int j = 0; j < data.col(i).size(); ++j)
+		{
+			data(j, i) = (data(j, i) - min) / value_range * scale_range + (-1.0f);
+			//data[i][j] = (data[i][j] - min) / value_range * scale_range + (-1.0f);
+		}
+	}
 }
 
 MatrixXf IO::Vector2EingenMatrix(vector<vector<float>> d)
