@@ -1,5 +1,4 @@
-#ifndef PARAMETER_H
-#define PARAMETER_H
+#pragma once
 
 #include <list>
 #include <string>
@@ -15,6 +14,7 @@ public:
 	float time_constant_;
 	//Parameter(std::list<std::string> &params);
 	Parameter(unsigned int map_size_x, unsigned int map_size_y, unsigned int train_length, float max_error);
+	void SetLearningRate(float value);
+	void SetSigma(float value);
 	virtual ~Parameter();
 };
-#endif

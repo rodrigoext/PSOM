@@ -1,5 +1,4 @@
-#ifndef CODEBOOK_H
-#define CODEBOOK_H
+#pragma once
 
 #include <Eigen/Core>
 
@@ -17,4 +16,3 @@ private:
 	unsigned int dimension_;
 	Eigen::MatrixXf weights_;
 };
-#endif

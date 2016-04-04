@@ -1,6 +1,4 @@
-#ifndef ALGORITHM_H
-#define ALGORITHM_H
-
+#pragma once
 #include <Eigen/Core>
 
 class Algorithm
@@ -15,4 +13,3 @@ public:
 private:
 	unsigned int total_epoch_;
 };
-#endif

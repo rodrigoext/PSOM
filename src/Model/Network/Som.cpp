@@ -32,8 +32,8 @@ void Som::InitGrid()
 	for (int i = 1; i <= map_x*map_y; ++i)
 	{
 		NInv(i, width, height);
-		grid_(i-1, 0) = height;
-		grid_(i-1, 1) = width;
+		grid_(i-1, 0) = static_cast<float>(height);
+		grid_(i - 1, 1) = static_cast<float>(width);
 	}
 	//std::cout << grid_ << std::endl;
 }
@@ -47,12 +47,11 @@ void Som::Train()
 	int dim = data_.cols();
 	float dist, learning_rate = 0.0f;
 	float hci_exp = 0.0f;
-	float sigma0 = params_->sigma_;
 	Eigen::MatrixXf::Index index;
 	Eigen::MatrixXf weights = codebook_->GetWeights();
 	for (int current_epoch = 0; current_epoch < params_->train_len_; ++current_epoch)
 	{
-		sigma = algorithm_->Radius(sigma0, current_epoch, params_->time_constant_);
+		sigma = algorithm_->Radius(params_->sigma_, current_epoch, params_->time_constant_);
 		learning_rate = algorithm_->LearningRate(params_->learning_rate_, current_epoch);
 		int rand_sample = rand() % (data_.rows() + 1);
 		auto sample = data_.row(rand_sample);
@@ -71,6 +70,32 @@ void Som::Train()
 			
 		}
 	}
+	//Ajuste fino
+	params_->SetSigma(0.1f);
+	params_->SetLearningRate(0.01f);
+
+	for (int current_epoch = 0; current_epoch < params_->train_len_; ++current_epoch)
+	{
+		sigma = algorithm_->Radius(params_->sigma_, current_epoch, params_->time_constant_);
+		learning_rate = algorithm_->LearningRate(params_->learning_rate_, current_epoch);
+		int rand_sample = rand() % (data_.rows() + 1);
+		auto sample = data_.row(rand_sample);
+		//get BMU
+		(weights.rowwise() - sample).rowwise().squaredNorm().minCoeff(&index);
+		auto bmu = grid_.row(index);
+		for (int n = 0; n < weights.rows(); ++n)
+		{
+			dist = (bmu - grid_.row(n)).squaredNorm();
+			float sigma2 = sigma*sigma;
+			if (dist < sigma2)
+			{
+				hci_exp = std::exp((-dist) / (2 * sigma2));
+				weights.row(n) += learning_rate * hci_exp * (sample - weights.row(n));
+			}
+
+		}
+	}
+
 	codebook_->SetWeightsEndTrain(weights);
 	std::cout << "Final weights" << std::endl;
 	std::cout << codebook_->GetWeights() << std::endl;

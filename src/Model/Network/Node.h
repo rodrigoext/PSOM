@@ -1,5 +1,4 @@
-#ifndef NODE_H
-#define NODE_H
+#pragma once
 
 class Node
 {
@@ -10,4 +9,3 @@ public:
 protected:
 
 };
-#endif

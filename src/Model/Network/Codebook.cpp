@@ -29,7 +29,7 @@ void Codebook::Generate()
 		for (unsigned int j = 0; j < dimension_; ++j)
 		{
 			//temp(i, j) = static_cast<float>(rand() / static_cast<float>(RAND_MAX));
-			temp(i, j) = dis(eng);
+			temp(i, j) = static_cast<float>(dis(eng));
 		}
 	}
 	weights_ = temp;

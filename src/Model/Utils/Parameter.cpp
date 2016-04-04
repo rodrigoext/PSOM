@@ -14,6 +14,16 @@ Parameter::Parameter(unsigned int map_size_x, unsigned int map_size_y, unsigned 
 	time_constant_ = train_len_ / std::log(sigma_);
 }
 
+void Parameter::SetLearningRate(float value)
+{
+	learning_rate_ = value;
+}
+
+void Parameter::SetSigma(float value)
+{
+	sigma_ = value;
+}
+
 
 Parameter::~Parameter()
 {

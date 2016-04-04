@@ -1,5 +1,4 @@
-#ifndef SOM_H
-#define SOM_H
+#pragma once
 
 #include "Node.h"
 #include "Model/Utils/Parameter.h"
@@ -30,4 +29,3 @@ private:
 	void NInv(int n, int &width, int &height);
 	//Node n;
 };
-#endif

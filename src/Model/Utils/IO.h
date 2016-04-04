@@ -1,6 +1,4 @@
-#ifndef IO_H
-#define IO_H
-#endif
+#pragma once
 #include <Eigen/Dense>
 #include <vector>
 
