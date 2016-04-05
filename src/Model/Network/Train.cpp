@@ -74,7 +74,7 @@ bool Train::ClassicSomTrain(Som & som)
 
 	som.codebook_->SetWeightsEndTrain(weights);
 	std::cout << "Final weights" << std::endl;
-	std::cout << som.codebook_->GetWeights() << std::endl;
+	std::cout << weights << std::endl;
 
 	return true;
 }

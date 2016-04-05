@@ -2,7 +2,7 @@
 #include <iostream>
 #include <limits>
 
-Som::Som(Eigen::MatrixXf data)
+Som::Som(Eigen::MatrixXf data, Som::Topology topology)
 {
 	data_ = data;
 	CalculateMapSize();
@@ -10,7 +10,7 @@ Som::Som(Eigen::MatrixXf data)
 	//TODO: calculate map size
 }
 
-Som::Som(Eigen::MatrixXf data, std::shared_ptr<Parameter> params)
+Som::Som(Eigen::MatrixXf data, std::shared_ptr<Parameter> params, Som::Topology topology)
 {
 	data_ = data;
 	params_ = params;
@@ -21,22 +21,38 @@ Som::Som(Eigen::MatrixXf data, std::shared_ptr<Parameter> params)
 	codebook_.reset(new Codebook(params_->map_x_, params_->map_y_, data_.cols()));
 	//std::cout << codebook_->GetWeights() << std::endl;
 	//std::cout << "---------------------------------------" << std::endl;
-	InitGrid();
+	InitGrid(topology);
 	std::shared_ptr<Train> t(new Train(*this));
 	//TrainSom();
 }
 
-void Som::InitGrid()
+void Som::InitGrid(Som::Topology topology)
 {
 	grid_ = Eigen::MatrixXf(codebook_->GetWeights().rows(), 2);
 	int width, height;
-	for (int i = 1; i <= map_x*map_y; ++i)
+	switch (topology)
 	{
-		NInv(i, width, height);
-		grid_(i-1, 0) = static_cast<float>(height);
-		grid_(i - 1, 1) = static_cast<float>(width);
+	case HEXAGONAL:
+		for (int i = 1; i <= map_x*map_y; i++) 
+		{
+			NInv(i, width, height);
+			grid_(i - 1, 0) = static_cast<float>(height);
+			grid_(i - i, 1) = static_cast<float>(width) * 0.8660;
+			if (width % 2 == 0)
+				grid_(i - 1, 0) += 0.5;
+		}
+		break;
+	case RETANGULAR:
+		for (int i = 1; i <= map_x*map_y; ++i)
+		{
+			NInv(i, width, height);
+			grid_(i - 1, 0) = static_cast<float>(height);
+			grid_(i - 1, 1) = static_cast<float>(width);
+		}
+		break;
+	default:
+		break;
 	}
-	//std::cout << grid_ << std::endl;
 }
 
 void Som::TrainSom()

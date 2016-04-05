@@ -17,7 +17,8 @@ int main()
 	Eigen::MatrixXf data = io->LoadData("../PSOM/src/Data/data_seis.csv");
 	
 	Parameter * params;
-	params = new Parameter(37, 22, 300, 0.01f);
+	params = new Parameter(37, 22, 300, 0.1f);
+	//params = new Parameter(14, 11, 300, 0.1f);
 	Som * som = new Som(data, std::make_shared<Parameter>(*params));
 
 	std::cout << "The end" << std::endl;

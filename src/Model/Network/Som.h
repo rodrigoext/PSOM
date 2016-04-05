@@ -20,11 +20,16 @@ protected:
 	int map_x, map_y;
 
 public:
-	Som(Eigen::MatrixXf data);
-	Som(Eigen::MatrixXf data, std::shared_ptr<Parameter> params);
+	enum Topology
+	{
+		RETANGULAR,
+		HEXAGONAL
+	};
+	Som(Eigen::MatrixXf data, Som::Topology topology = Topology::HEXAGONAL);
+	Som(Eigen::MatrixXf data, std::shared_ptr<Parameter> params, Som::Topology topology = Topology::HEXAGONAL);
 	virtual ~Som();
 private:
-	void InitGrid();
+	void InitGrid(Som::Topology topology);
 	void TrainSom();
 	void CalculateMapSize();
 	void DetermineRadiusInitial();
