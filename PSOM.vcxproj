@@ -73,6 +73,7 @@
     <ClInclude Include="src\Model\Tests\Test.h" />
     <ClInclude Include="src\Model\Utils\IO.h" />
     <ClInclude Include="src\Model\Utils\Parameter.h" />
+    <ClInclude Include="src\Model\Network\Train.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Model\Utils\Algorithm.cpp" />
@@ -83,6 +84,7 @@
     <ClCompile Include="src\Model\Tests\Test.cpp" />
     <ClCompile Include="src\Model\Utils\IO.cpp" />
     <ClCompile Include="src\Model\Utils\Parameter.cpp" />
+    <ClCompile Include="src\Model\Network\Train.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

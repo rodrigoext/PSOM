@@ -4,12 +4,14 @@
 #include "Model/Utils/Parameter.h"
 #include "Model/Utils/Algorithm.h"
 #include "Model/Network/Codebook.h"
+#include "Model/Network/Train.h"
 
 #include <Eigen/Core>
 #include <memory>
 class Som
 {
-private:
+	friend class Train;
+protected:
 	Eigen::MatrixXf data_;
 	Eigen::MatrixXf grid_;
 	std::shared_ptr<Parameter> params_;
@@ -23,7 +25,7 @@ public:
 	virtual ~Som();
 private:
 	void InitGrid();
-	void Train();
+	void TrainSom();
 	void CalculateMapSize();
 	void DetermineRadiusInitial();
 	void NInv(int n, int &width, int &height);

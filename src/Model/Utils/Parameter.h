@@ -13,7 +13,7 @@ public:
 	float learning_rate_;
 	float time_constant_;
 	//Parameter(std::list<std::string> &params);
-	Parameter(unsigned int map_size_x, unsigned int map_size_y, unsigned int train_length, float max_error);
+	Parameter(unsigned int map_size_x, unsigned int map_size_y, unsigned int train_length, float learning_rate);
 	void SetLearningRate(float value);
 	void SetSigma(float value);
 	virtual ~Parameter();

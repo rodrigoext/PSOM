@@ -22,7 +22,8 @@ Som::Som(Eigen::MatrixXf data, std::shared_ptr<Parameter> params)
 	//std::cout << codebook_->GetWeights() << std::endl;
 	//std::cout << "---------------------------------------" << std::endl;
 	InitGrid();
-	Train();
+	std::shared_ptr<Train> t(new Train(*this));
+	//TrainSom();
 }
 
 void Som::InitGrid()
@@ -38,7 +39,7 @@ void Som::InitGrid()
 	//std::cout << grid_ << std::endl;
 }
 
-void Som::Train()
+void Som::TrainSom()
 {
 	std::cout << "Training... " << std::endl;
 	float sigma = params_->sigma_;
