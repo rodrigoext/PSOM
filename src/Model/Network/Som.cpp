@@ -35,24 +35,27 @@ void Som::InitGrid(Som::Topology topology)
 	case HEXAGONAL:
 		for (int i = 1; i <= map_x*map_y; i++) 
 		{
-			NInv(i, width, height);
-			grid_(i - 1, 0) = static_cast<float>(height);
-			grid_(i - i, 1) = static_cast<float>(width) * 0.8660;
-			if (width % 2 == 0)
+			NInv(i, height, width);
+			grid_(i - 1, 0) = static_cast<float>(width);
+			grid_(i - 1, 1) = static_cast<float>(height) * 0.8660;
+			if (height % 2 == 0)
 				grid_(i - 1, 0) += 0.5;
 		}
 		break;
 	case RETANGULAR:
 		for (int i = 1; i <= map_x*map_y; ++i)
 		{
-			NInv(i, width, height);
-			grid_(i - 1, 0) = static_cast<float>(height);
-			grid_(i - 1, 1) = static_cast<float>(width);
+			NInv(i, height, width);
+			grid_(i - 1, 0) = static_cast<float>(width);
+			grid_(i - 1, 1) = static_cast<float>(height);
 		}
 		break;
 	default:
 		break;
 	}
+	std::cout << "grid -------" << std::endl;
+	std::cout << grid_ << std::endl;
+	std::cout << "fim grid -------" << std::endl;
 }
 
 void Som::TrainSom()
@@ -169,7 +172,7 @@ void Som::DetermineRadiusInitial()
 	int train_len = std::max(1, (int)(10 * ((map_x * map_y) / data_.rows())));
 }
 
-void Som::NInv(int n, int &width, int &height)
+void Som::NInv(int n, int &height, int &width)
 {
 	if (n > codebook_->GetWeights().rows())
 		return;

@@ -3,7 +3,7 @@
 #include <Eigen/Core>
 #include <iostream>
 
-Train::Train(Som &som, Train::TrainType train_type)
+Train::Train(Som &som, Train::TrainType train_type) : fine_adjustment_(false)
 {
 	switch (train_type)
 	{
@@ -46,29 +46,32 @@ bool Train::ClassicSomTrain(Som & som)
 
 		}
 	}
-	//Ajuste fino
-	som.params_->SetSigma(0.1f);
-	som.params_->SetLearningRate(0.01f);
-
-	for (int current_epoch = 0; current_epoch < som.params_->train_len_; ++current_epoch)
+	if (fine_adjustment_)
 	{
-		sigma = som.algorithm_->Radius(som.params_->sigma_, current_epoch, som.params_->time_constant_);
-		learning_rate = som.algorithm_->LearningRate(som.params_->learning_rate_, current_epoch);
-		int rand_sample = rand() % (som.data_.rows() + 1);
-		auto sample = som.data_.row(rand_sample);
-		//get BMU
-		(weights.rowwise() - sample).rowwise().squaredNorm().minCoeff(&index);
-		auto bmu = som.grid_.row(index);
-		for (int n = 0; n < weights.rows(); ++n)
-		{
-			dist = (bmu - som.grid_.row(n)).squaredNorm();
-			float sigma2 = sigma*sigma;
-			if (dist < sigma2)
-			{
-				hci_exp = std::exp((-dist) / (2 * sigma2));
-				weights.row(n) += learning_rate * hci_exp * (sample - weights.row(n));
-			}
+		//Ajuste fino
+		som.params_->SetSigma(0.1f);
+		som.params_->SetLearningRate(0.01f);
 
+		for (int current_epoch = 0; current_epoch < som.params_->train_len_; ++current_epoch)
+		{
+			sigma = som.algorithm_->Radius(som.params_->sigma_, current_epoch, som.params_->time_constant_);
+			learning_rate = som.algorithm_->LearningRate(som.params_->learning_rate_, current_epoch);
+			int rand_sample = rand() % (som.data_.rows() + 1);
+			auto sample = som.data_.row(rand_sample);
+			//get BMU
+			(weights.rowwise() - sample).rowwise().squaredNorm().minCoeff(&index);
+			auto bmu = som.grid_.row(index);
+			for (int n = 0; n < weights.rows(); ++n)
+			{
+				dist = (bmu - som.grid_.row(n)).squaredNorm();
+				float sigma2 = sigma*sigma;
+				if (dist < sigma2)
+				{
+					hci_exp = std::exp((-dist) / (2 * sigma2));
+					weights.row(n) += learning_rate * hci_exp * (sample - weights.row(n));
+				}
+
+			}
 		}
 	}
 

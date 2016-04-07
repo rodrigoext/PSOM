@@ -1,6 +1,6 @@
-data_t = dataseis';
-data_tn = mapminmax(data_t);
-D = data_tn';
+% data_t = dataseis';
+% data_tn = mapminmax(data_t);
+% D = data_tn';
 sm = som_make(D);
 try
     figure;som_show(sm);

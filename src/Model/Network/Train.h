@@ -11,6 +11,7 @@ public:
 	Train(Som &som, Train::TrainType train_type = TrainType::CLASSIC);
 	virtual ~Train();
 private:
+	bool fine_adjustment_;
 	bool ClassicSomTrain(Som &som);
 };
 
