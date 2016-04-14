@@ -30,6 +30,7 @@ void Codebook::Generate()
 		{
 			//temp(i, j) = static_cast<float>(rand() / static_cast<float>(RAND_MAX));
 			temp(i, j) = static_cast<float>(dis(eng));
+			//temp(i, j) = 0.0f;
 		}
 	}
 	weights_ = temp;

@@ -14,6 +14,7 @@ class Som
 protected:
 	Eigen::MatrixXf data_;
 	Eigen::MatrixXf grid_;
+	Eigen::MatrixXf umat_;
 	std::shared_ptr<Parameter> params_;
 	std::shared_ptr<Codebook> codebook_;
 	std::shared_ptr<Algorithm> algorithm_;
@@ -34,5 +35,6 @@ private:
 	void CalculateMapSize();
 	void DetermineRadiusInitial();
 	void NInv(int n, int &width, int &height);
+	void CalculateUMatrix();
 	//Node n;
 };

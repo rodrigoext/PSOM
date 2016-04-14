@@ -25,6 +25,22 @@ float Algorithm::CalculateNeuronDistance(Eigen::VectorXf neuron_1, Eigen::Vector
 	return (neuron_1 - neuron_2).squaredNorm();
 }
 
+float Algorithm::CalculateMedian(std::vector<float> &data)
+{
+	float median = 0.0f;
+	size_t size = data.size();
+	sort(data.begin(), data.end());
+	if (size % 2 == 0)
+	{
+		median = (data[size / 2 - 1] + data[size / 2]) / 2;
+	}
+	else
+	{
+		median = data[size / 2];
+	}
+	return median;
+}
+
 Algorithm::~Algorithm()
 {
 }

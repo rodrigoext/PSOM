@@ -1,6 +1,7 @@
 #include "Som.h"
 #include <iostream>
 #include <limits>
+#include <vector>
 
 Som::Som(Eigen::MatrixXf data, Som::Topology topology)
 {
@@ -23,6 +24,7 @@ Som::Som(Eigen::MatrixXf data, std::shared_ptr<Parameter> params, Som::Topology 
 	//std::cout << "---------------------------------------" << std::endl;
 	InitGrid(topology);
 	std::shared_ptr<Train> t(new Train(*this));
+	CalculateUMatrix();
 	//TrainSom();
 }
 
@@ -178,4 +180,110 @@ void Som::NInv(int n, int &height, int &width)
 		return;
 	width = (n - 1) / map_x + 1;
 	height = n - (width - 1) * map_x;
+}
+
+void Som::CalculateUMatrix()
+{
+	Eigen::MatrixXf umat(2 * map_x - 1, 2 * map_y - 1);
+	typedef Eigen::Matrix<Eigen::VectorXf, Eigen::Dynamic, Eigen::Dynamic> Neurons;
+	Neurons neurons(map_x, map_y);
+	
+	int count = 0;
+	for (int i = 0; i < map_x; ++i)
+	{
+		for (int j = 0; j < map_y; ++j)
+		{
+			neurons(i, j) = codebook_->GetWeights().row(count);
+			count++;
+		}
+	}
+
+	for (int i = 0; i < map_x; ++i)
+	{
+		for (int j = 0; j < map_y; ++j)
+		{
+			if (j < (map_y - 1))
+				umat(2*i,2*j+1) = algorithm_->CalculateNeuronDistance(neurons(i, j), neurons(i, j+1));
+			if (i < (map_x - 1))
+				umat(2*i+1, 2*j) = algorithm_->CalculateNeuronDistance(neurons(i, j), neurons(i+1, j));
+			if (i < (map_x - 1) && j < (map_y - 1))
+			{
+				float d1 = algorithm_->CalculateNeuronDistance(neurons(i, j), neurons(i + 1, j + 1));
+				float d2 = algorithm_->CalculateNeuronDistance(neurons(i + 1, j), neurons(i, j + 1));
+				umat(2 * i + 1, 2 * j + 1) = (d1 + d2) / (2 * sqrt(2));
+			}
+		}
+		std::vector<float> a;
+		for (int i = 0; i < umat.rows(); i += 2)
+		{
+			for (int j = 0; j < umat.cols(); j += 2)
+			{
+				if (j > 0 && i > 0 && i < (umat.rows() - 1) && j < (umat.cols() - 1))
+				{
+					a.push_back(umat(i, j - 1));
+					a.push_back(umat(i, j + 1));
+					a.push_back(umat(i - 1, j));
+					a.push_back(umat(i + 1, j));
+				}
+				else if (i == 0 && j > 0 && j < (umat.cols() - 1))
+				{
+					a.push_back(umat(i, j - 1));
+					a.push_back(umat(i, j + 1));
+					a.push_back(umat(i + 1, j));
+				}
+				else if (i == (umat.rows() - 1) && j > 0 && j < (umat.cols() - 1))
+				{
+					a.push_back(umat(i, j - 1));
+					a.push_back(umat(i, j + 1));
+					a.push_back(umat(i - 1, j));
+				}
+				else if (j == 0 && i > 0 && i < (umat.rows() - 1))
+				{
+					a.push_back(umat(i, j + 1));
+					a.push_back(umat(i - 1, j));
+					a.push_back(umat(i + 1, j));
+				}
+				else if (j == (umat.cols() - 1) && i > 0 && i < (umat.rows() - 1))
+				{
+					a.push_back(umat(i, j - 1));
+					a.push_back(umat(i - 1, j));
+					a.push_back(umat(i + 1, j));
+				}
+				else if (j == 0 && i == 0)
+				{
+					a.push_back(umat(i, j + 1));
+					a.push_back(umat(i + 1, j));
+				}
+				else if (i == 0 && j > 0 && j < (umat.cols() - 1))
+				{
+					a.push_back(umat(i, j));
+					a.push_back(umat(i, j));
+					a.push_back(umat(i, j));
+				}
+				else if (j == (umat.rows() - 1) && i == 0)
+				{
+					a.push_back(umat(i, j - 1));
+					a.push_back(umat(i + 1, j));
+				}
+				else if (j == 0 && i < (umat.rows() - 1))
+				{
+					a.push_back(umat(i, j + 1));
+					a.push_back(umat(i - 1, j));
+				}
+				else if (j == (umat.cols() - 1) && i == (umat.rows() - 1))
+				{
+					a.push_back(umat(i, j - 1));
+					a.push_back(umat(i - 1, j));
+				}
+				else
+				{
+					a.push_back(0.0f);
+				}
+				umat(i, j) = algorithm_->CalculateMedian(a);
+				//a.clear();
+			}
+
+		}
+	}
+	std::cout << "UMAT:" << std::endl << umat << std::endl;
 }

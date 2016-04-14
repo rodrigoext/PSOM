@@ -19,7 +19,7 @@ int main()
 	Parameter * params;
 	params = new Parameter(14, 11, 300, 0.1f);
 	//params = new Parameter(14, 11, 200, 0.08f);
-	Som * som = new Som(data, std::make_shared<Parameter>(*params));
+	Som * som = new Som(data, std::make_shared<Parameter>(*params), som->RETANGULAR);
 
 	std::cout << "The end" << std::endl;
 	system("PAUSE");
