@@ -1,2 +1,5 @@
 libs/
 Debug/
+.cproject
+.project
+.settings/

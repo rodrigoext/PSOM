@@ -10,8 +10,8 @@ public:
 	~IO();
 
 private:
-	std::vector<std::vector<float >> ReadData(const char * file_name);
+	std::vector<std::vector<float > > ReadData(const char * file_name);
 	void MapMinMax(Eigen::MatrixXf &data);
-	Eigen::MatrixXf Vector2EingenMatrix(std::vector<std::vector<float>> d);
+	Eigen::MatrixXf Vector2EingenMatrix(std::vector<std::vector<float> > d);
 };
 

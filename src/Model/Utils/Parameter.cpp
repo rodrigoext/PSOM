@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <cmath>
 
 Parameter::Parameter(unsigned int map_size_x, unsigned int map_size_y, unsigned int train_length, float learning_rate)
 {
@@ -11,7 +12,7 @@ Parameter::Parameter(unsigned int map_size_x, unsigned int map_size_y, unsigned 
 	max_error_ = 0.01f;
 	learning_rate_ = learning_rate;
 	sigma_ = std::max(static_cast<float>(map_x_ / 2), static_cast<float>(map_y_ / 2));
-	time_constant_ = train_len_ / std::log(sigma_);
+	time_constant_ = train_len_ / log(sigma_);
 }
 
 void Parameter::SetLearningRate(float value)
