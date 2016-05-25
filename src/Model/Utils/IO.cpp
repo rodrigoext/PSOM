@@ -9,6 +9,8 @@
 using namespace std;
 using namespace Eigen;
 
+const static IOFormat CSVFormat(StreamPrecision, DontAlignCols, ", ", "\n");
+
 IO::IO()
 {
 }
@@ -74,6 +76,23 @@ vector<vector<float> > IO::ReadData(const char * file_name)
 	}
 
 	return data_float;
+}
+
+void IO::SaveUMAT(Eigen::MatrixXf &data)
+{
+	std::ofstream file("../PSOM/src/Data/umat.csv");
+	if (file.is_open())
+	{
+		file << data.format(CSVFormat);
+	}
+}
+
+void IO::SaveMatrix(Eigen::MatrixXf &data, std::string file_name) {
+	std::ofstream file("../PSOM/src/Data/"+file_name+".csv");
+	if (file.is_open())
+	{
+		file << data.format(CSVFormat);
+	}
 }
 
 void IO::MapMinMax(Eigen::MatrixXf &data)

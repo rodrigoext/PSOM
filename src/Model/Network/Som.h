@@ -28,6 +28,7 @@ public:
 	};
 	Som(Eigen::MatrixXf data, Som::Topology topology = Topology::HEXAGONAL);
 	Som(Eigen::MatrixXf data, std::shared_ptr<Parameter> params, Som::Topology topology = Topology::HEXAGONAL);
+	Eigen::MatrixXf GetUMatrix() {return umat_;}
 	virtual ~Som();
 private:
 	void InitGrid(Som::Topology topology);
@@ -36,5 +37,6 @@ private:
 	void DetermineRadiusInitial();
 	void NInv(int n, int &width, int &height);
 	void CalculateUMatrix();
+	void CalculateUMatrix2();
 	//Node n;
 };

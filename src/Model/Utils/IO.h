@@ -7,6 +7,8 @@ class IO
 public:
 	IO();
 	Eigen::MatrixXf LoadData(const char * file_name);
+	void SaveUMAT(Eigen::MatrixXf &data);
+	void SaveMatrix(Eigen::MatrixXf &data, std::string file_name);
 	~IO();
 
 private:

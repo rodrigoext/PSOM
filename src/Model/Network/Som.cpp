@@ -3,6 +3,9 @@
 #include <limits>
 #include <vector>
 
+#include <Model/Utils/Watershed.h>
+#include <Model/Utils/IO.h>
+
 Som::Som(Eigen::MatrixXf data, Som::Topology topology)
 {
 	data_ = data;
@@ -184,106 +187,119 @@ void Som::NInv(int n, int &height, int &width)
 
 void Som::CalculateUMatrix()
 {
-	Eigen::MatrixXf umat(2 * map_x - 1, 2 * map_y - 1);
+	int y = map_x;
+	int x = map_y;
+	int ux = 2 * x - 1;
+	int uy = 2 * y - 1;
+
+	Eigen::MatrixXf umat = Eigen::MatrixXf::Zero(uy, ux);
 	typedef Eigen::Matrix<Eigen::VectorXf, Eigen::Dynamic, Eigen::Dynamic> Neurons;
 	Neurons neurons(map_x, map_y);
+	//Eigen::MatrixXf neurons(map_x, map_y);
 	
 	int count = 0;
-	for (int i = 0; i < map_x; ++i)
+	std::cout << "neurons" << std::endl;
+	for (int j = 0; j < map_y; ++j)
 	{
-		for (int j = 0; j < map_y; ++j)
+		for (int i = 0; i < map_x; ++i)
 		{
 			neurons(i, j) = codebook_->GetWeights().row(count);
 			count++;
 		}
 	}
+	IO *io = new IO();
+	Eigen::MatrixXf codebook = codebook_->GetWeights();
+	io->SaveMatrix(codebook, "codebook");
 
-	for (int i = 0; i < map_x; ++i)
+	for (int j = 0; j < y; ++j)
 	{
-		for (int j = 0; j < map_y; ++j)
+		for (int i = 0; i < x; ++i)
 		{
-			if (j < (map_y - 1))
-				umat(2*i,2*j+1) = algorithm_->CalculateNeuronDistance(neurons(i, j), neurons(i, j+1));
-			if (i < (map_x - 1))
-				umat(2*i+1, 2*j) = algorithm_->CalculateNeuronDistance(neurons(i, j), neurons(i+1, j));
-			if (i < (map_x - 1) && j < (map_y - 1))
-			{
-				float d1 = algorithm_->CalculateNeuronDistance(neurons(i, j), neurons(i + 1, j + 1));
-				float d2 = algorithm_->CalculateNeuronDistance(neurons(i + 1, j), neurons(i, j + 1));
-				umat(2 * i + 1, 2 * j + 1) = (d1 + d2) / (2 * sqrt(2));
+			if (i < (x - 1)) {
+				float d1 = algorithm_->CalculateNeuronDistance(neurons(j, i), neurons(j, i+1));
+				umat(2*j,2*i+1) = d1;
 			}
-		}
-		std::vector<float> a;
-		for (int i = 0; i < umat.rows(); i += 2)
-		{
-			for (int j = 0; j < umat.cols(); j += 2)
-			{
-				if (j > 0 && i > 0 && i < (umat.rows() - 1) && j < (umat.cols() - 1))
-				{
-					a.push_back(umat(i, j - 1));
-					a.push_back(umat(i, j + 1));
-					a.push_back(umat(i - 1, j));
-					a.push_back(umat(i + 1, j));
-				}
-				else if (i == 0 && j > 0 && j < (umat.cols() - 1))
-				{
-					a.push_back(umat(i, j - 1));
-					a.push_back(umat(i, j + 1));
-					a.push_back(umat(i + 1, j));
-				}
-				else if (i == (umat.rows() - 1) && j > 0 && j < (umat.cols() - 1))
-				{
-					a.push_back(umat(i, j - 1));
-					a.push_back(umat(i, j + 1));
-					a.push_back(umat(i - 1, j));
-				}
-				else if (j == 0 && i > 0 && i < (umat.rows() - 1))
-				{
-					a.push_back(umat(i, j + 1));
-					a.push_back(umat(i - 1, j));
-					a.push_back(umat(i + 1, j));
-				}
-				else if (j == (umat.cols() - 1) && i > 0 && i < (umat.rows() - 1))
-				{
-					a.push_back(umat(i, j - 1));
-					a.push_back(umat(i - 1, j));
-					a.push_back(umat(i + 1, j));
-				}
-				else if (j == 0 && i == 0)
-				{
-					a.push_back(umat(i, j + 1));
-					a.push_back(umat(i + 1, j));
-				}
-				else if (i == 0 && j > 0 && j < (umat.cols() - 1))
-				{
-					a.push_back(umat(i, j));
-					a.push_back(umat(i, j));
-					a.push_back(umat(i, j));
-				}
-				else if (j == (umat.rows() - 1) && i == 0)
-				{
-					a.push_back(umat(i, j - 1));
-					a.push_back(umat(i + 1, j));
-				}
-				else if (j == 0 && i < (umat.rows() - 1))
-				{
-					a.push_back(umat(i, j + 1));
-					a.push_back(umat(i - 1, j));
-				}
-				else if (j == (umat.cols() - 1) && i == (umat.rows() - 1))
-				{
-					a.push_back(umat(i, j - 1));
-					a.push_back(umat(i - 1, j));
-				}
-				else
-				{
-					a.push_back(0.0f);
-				}
-				umat(i, j) = algorithm_->CalculateMedian(a);
-				//a.clear();
+			if (j < (y - 1)) {
+				float d1 = algorithm_->CalculateNeuronDistance(neurons(j, i), neurons(j+1, i));
+				umat(2*j+1, 2*i) = d1;
 			}
-
+			if (i < (x - 1) && j < (y - 1))
+			{
+				float d1 = algorithm_->CalculateNeuronDistance(neurons(j, i), neurons(j + 1, i + 1));
+				float d2 = algorithm_->CalculateNeuronDistance(neurons(j + 1, i), neurons(j, i + 1));
+				umat(2 * j + 1, 2 * i + 1) = (d1 + d2) / (2 * sqrt(2));
+			}
 		}
 	}
+
+	for (int j = 0; j < uy; j += 2)
+	{
+		for (int i = 0; i < ux; i += 2)
+		{
+			std::vector<float> a;
+			if (i > 0 && j > 0 && i < (ux - 1) && j < (uy - 1)) // middle part of the map
+			{
+				a.push_back(umat(j, i - 1));
+				a.push_back(umat(j, i + 1));
+				a.push_back(umat(j - 1, i));
+				a.push_back(umat(j + 1, i));
+			}
+			else if (j == 0 && i > 0 && i < (ux - 1)) // upper edge
+			{
+				a.push_back(umat(j, i - 1));
+				a.push_back(umat(j, i + 1));
+				a.push_back(umat(j + 1, i));
+			}
+			else if (j == (uy - 1) && i > 0 && i < (ux - 1)) // lower edge
+			{
+				a.push_back(umat(j, i - 1));
+				a.push_back(umat(j, i + 1));
+				a.push_back(umat(j - 1, i));
+			}
+			else if (i == 0 && j > 0 && j < (uy - 1)) // left edge
+			{
+				a.push_back(umat(j, i + 1));
+				a.push_back(umat(j - 1, i));
+				a.push_back(umat(j + 1, i));
+			}
+			else if (i == (ux - 1) && j > 0 && j < (uy - 1)) // right edge
+			{
+				a.push_back(umat(j, i - 1));
+				a.push_back(umat(j - 1, i));
+				a.push_back(umat(j + 1, i));
+			}
+			else if (i == 0 && j == 0) // top left corner
+			{
+				a.push_back(umat(j, i + 1));
+				a.push_back(umat(j + 1, i));
+			}
+			else if (i == (ux - 1) && j == 0) // top right corner
+			{
+				a.push_back(umat(j, i - 1));
+				a.push_back(umat(j + 1, i));
+			}
+			else if (i == 0 && j == (uy - 1)) // bottom left corner
+			{
+				a.push_back(umat(j, i + 1));
+				a.push_back(umat(j - 1, i));
+			}
+			else if (i == (ux - 1) && j == (uy - 1)) // bottom right corner
+			{
+				a.push_back(umat(j, i - 1));
+				a.push_back(umat(j - 1, i));
+			}
+			else
+			{
+				a.push_back(0.0f);
+			}
+			umat(j, i) = algorithm_->CalculateMedian(a);
+		}
+
+	}
 	std::cout << "UMAT:" << std::endl << umat << std::endl;
+	umat_ = umat;
+	io->SaveUMAT(umat);
+	/*Watershed * w = new Watershed();
+	Eigen::MatrixXf r = w->transform(umat_);
+	std::cout << "r" << std::endl << r;*/
 }
