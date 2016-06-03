@@ -6,7 +6,7 @@ class IO
 {
 public:
 	IO();
-	Eigen::MatrixXf LoadData(const char * file_name);
+	Eigen::MatrixXf LoadData(const char * file_name, bool normalize = true);
 	void SaveUMAT(Eigen::MatrixXf &data);
 	void SaveMatrix(Eigen::MatrixXf &data, std::string file_name);
 	~IO();

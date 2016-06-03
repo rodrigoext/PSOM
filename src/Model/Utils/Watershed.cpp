@@ -10,6 +10,9 @@
 #include <iostream>
 // Níveis de discretização da imagem
 #define LEVELS 31
+# define MASK -2 /* initial value of a threshold level */
+# define WSHED 0 /* value of the pixels belonging to the watersheds */
+# define INIT -1 /* initial value of im, */
 
 Watershed::Watershed() {
 	// TODO Auto-generated constructor stub
@@ -22,246 +25,184 @@ Watershed::~Watershed() {
 
 Eigen::MatrixXf Watershed::transform(const Eigen::MatrixXf &input) {
 	Eigen::MatrixXf imi = input;
-	int linhas = imi.rows(), colunas = imi.cols();
-	int unidades = linhas * colunas;
-	for (int l = 0; l < linhas; l++) {
-			for (int c = 0; c < colunas; c++) {
-				imi(l, c) = imi(l, c) - imi.minCoeff();
+		int rows = imi.rows();
+		int cols = imi.cols();
+		int units = rows * cols;
+		imi = imi * LEVELS;
+
+		for (int l = 0; l < rows; l++) {
+			for (int c = 0; c < cols; c++) {
+				imi(l, c) = ((int) (imi(l, c) + 0.5)) + 1;
 			}
 		}
-	for (int l = 0; l < linhas; l++) {
-			for (int c = 0; c < colunas; c++) {
-				imi(l, c) = imi(l, c) / imi.maxCoeff();
-			}
-		}
-	for (int l = 0; l < linhas; l++) {
-			for (int c = 0; c < colunas; c++) {
-				imi(l, c) = imi(l, c) *LEVELS;
-			}
-		}
-	//imi = imi - imi.minCoeff();
-	//imi = imi / imi.maxCoeff();
-	//imi = imi * LEVELS;
 
-	for (int l = 0; l < linhas; l++) {
-		for (int c = 0; c < colunas; c++) {
-			imi(l, c) = ((int) (imi(l, c) + 0.5)) + 1;
-		}
-	}
+		std::queue<pos> fifo;
 
-	std::queue<pos> fifo;
+		Eigen::MatrixXf imo(imi);
 
-# define MASK -2 /* initial value of a threshold level */
-# define WSHED 0 /* value of the pixels belonging to the watersheds */
-# define INIT -1 /* initial value of im, */
+		imo.setConstant(INIT);
 
-	//. -input: imi, decimal image;
-	Eigen::MatrixXf imo(imi); //-output: im0 image of the labeled watersheds;
+		int current_label = 0;
+		int current_distance;
 
-	// Initializations:
-	//-Value INIT is assigned to each pixel of im, :
-	for (int i = 0; i < imo.rows(); ++i)
-		for (int j = 0; j < imo.cols(); ++j)
-			imo(i,j) = INIT;
+		Eigen::MatrixXf imd(imo);
+		imd.setConstant(0);
 
-	int currentLabel = 0;
-	int currentDistance;
-	Eigen::MatrixXf imd(imo);
-	for (int i = 0; i < imo.rows(); ++i)
-			for (int j = 0; j < imo.cols(); ++j)
-				imd(i,j) = INIT;
+		Eigen::MatrixXf temp_mat(imi);
+		Eigen::VectorXf sorted(rows*cols);
 
+		std::vector<pos> positions;
+		int row_min = 0, col_min = 0;
+		float temp_min = imi(0,0);
 
-	// Sort the pixels of imi in the increasing order of their gray values.
-	Eigen::MatrixXf tempMat = imi;
-	Eigen::VectorXf sorted(linhas * colunas);
-	std::vector<pos> positions;
+		float hmax = temp_mat.maxCoeff();
+		float hmin = temp_mat.minCoeff();
 
-	int linhamin = 1, colunamin = 1;
-	double tempMin = imi(1, 1);
-	std::cout << "aaaqui" << std::endl;
-	// Let hmin and hmax designate the lowest and highest values, respectively.
-	double hmax = (double)tempMat.maxCoeff();
-	double hmin = (double)tempMat.minCoeff();
-
-	// Sort pixels
-	for (int i = 0; i < linhas * colunas; i++) {
-		for (int l = 0; l < linhas; l++) {
-			for (int c = 0; c < colunas; c++) {
-				if (tempMin > tempMat(l, c)) {
-					tempMin = tempMat(l, c);
-					linhamin = l;
-					colunamin = c;
-				}
-			}
-		}
-		pos p;
-		p.l = linhamin;
-		p.c = colunamin;
-		positions.push_back(p);
-		sorted(i) = tempMin;
-		tempMat(linhamin, colunamin) = hmax + 1;
-		linhamin = 1;
-		colunamin = 1;
-		tempMin = tempMat(1, 1);
-	}
-	std::cout << "aaaqui" << std::endl;
-	int lastPixel = 1;
-	pos posicao;
-	// For h = hmin to hmax {
-	for (int h = hmin-1; h < hmax; h++) {
-		// cout << "h: " << h << endl;
-		// geodesic SKIZ of level h - 1 inside level h
-		//For every pixel p such that imi(p) = h {
-		while (h == sorted(lastPixel)) {
-			// cout << "lastPixel: " << lastPixel << endl;
-			posicao = positions.at(lastPixel - 1);
-			std::cout << "aaaqui" << std::endl;
-			imo(posicao.l, posicao.c) = MASK;
-			std::vector<pos> posicoes = vizinhanca4(posicao.l, posicao.c, linhas,
-					colunas);
-			for (unsigned int i = 0; i < posicoes.size(); i++) {
-				pos p = posicoes.at(i);
-				if (imo(p.l, p.c) >= 0) {
-					imd(p.l, p.c) = 1;
-					fifo.push(p);
-				}
-			}
-			lastPixel++;
-			if (lastPixel > unidades)
-				break;
-		}
-		currentDistance = 1;
-		pos * p = new pos;
-		p->l = 0;
-		fifo.push(*p);
-		do {
-			*p = fifo.front();
-			fifo.pop(); // p = fifo.first();
-			if (p->l == 0) {
-				if (fifo.empty())
-					break;
-				else {
-					p = new pos;
-					p->l = 0;
-					fifo.push(*p);
-					currentDistance += 1;
-					*p = fifo.front();
-					fifo.pop(); // p = fifo.first();
-				}
-			}
-			std::vector<pos> posicoes = vizinhanca4(p->l, p->c, linhas, colunas);
-			for (unsigned int i = 0; i < posicoes.size(); i++) {
-				pos pl = posicoes.at(i);
-
-				// se plinha pertence a alguma bacia ou watershed
-				if (imd(pl.l, pl.c) < currentDistance and (imo(pl.l, pl.c) > 0
-						or imo(pl.l, pl.c) == WSHED)) {
-
-					if (imo(pl.l, pl.c) > 0) {
-						if (imo(p->l, p->c) == MASK or imo(p->l, p->c) == WSHED)
-							imo(p->l, p->c) = imo(pl.l, pl.c);
-						else if (imo(p->l, p->c) != imo(pl.l, pl.c))
-							imo(p->l, p->c) = WSHED;
-					} else if (imo(p->l, p->c) == MASK)
-						imo(p->l, p->c) = WSHED;
-				} else if (imo(pl.l, pl.c) == MASK and imd(pl.l, pl.c) == 0) {
-					imd(pl.l, pl.c) = currentDistance + 1;
-					fifo.push(pl);
-				}
-			}
-
-		} while (1);
-
-		//For every pixel p such that imi(p) = h {
-		int lastPixel2 = 1;
-		double sortlast = sorted(lastPixel2);
-		while (h == sorted(lastPixel2)) {
-			posicao = positions.at(lastPixel2 - 1);
-			imd(posicao.l, posicao.c) = 0;
-			if (imo(posicao.l, posicao.c) == MASK) {
-				currentLabel += 1;
-				fifo.push(posicao);
-				imo(posicao.l, posicao.c) = currentLabel;
-				while (!fifo.empty()) {
-					pos pl = fifo.front();
-					fifo.pop(); // pl = fifo.first()
-					std::vector<pos> posicoes = vizinhanca4(pl.l, pl.c, linhas,colunas);
-					for (unsigned int i = 0; i < posicoes.size(); i++) {
-						pos pll = posicoes.at(i);
-						if (imo(pll.l, pll.c) == MASK) {
-							fifo.push(pll);
-							imo(pll.l, pll.c) = currentLabel;
-						}
+		for(int i = 0; i < units; ++i)
+		{
+			for (int r = 0; r < rows; ++r)
+			{
+				for (int c = 0; c < cols; ++c)
+				{
+					if (temp_min > temp_mat(r,c)) {
+						temp_min = temp_mat(r,c);
+						row_min = r;
+						col_min = c;
 					}
 				}
 			}
-
-
-			lastPixel2++;
-			if (lastPixel2 > unidades)
-				break;
+			pos p;
+			p.row = row_min;
+			p.col = col_min;
+			positions.push_back(p);
+			sorted(i) = temp_min;
+			temp_mat(row_min, col_min) = hmax + 1;
+			row_min = 0;
+			col_min = 0;
+			temp_min = temp_mat(0, 0);
 		}
-	}
+		int last_pixel = 0;
+		pos position;
+		for (int h = hmin; h < hmax; ++h)
+		{
+			while (h == sorted(last_pixel))
+			{
+				position = positions.at(last_pixel);
+				imo(position.row, position.col) = MASK;
+				std::vector<pos> positions_temp = vizinhanca4(position.row, position.col, rows, cols);
+				for (unsigned int i = 0; i < positions_temp.size(); ++i)
+				{
+					pos p = positions_temp.at(i);
+					if (imo(p.row, p.col) >= 0) {
+						imd(p.row, p.col) = 1;
+						fifo.push(p);
+					}
+				}
+				last_pixel++;
+				if (last_pixel > (units - 1))
+					break;
+			}
+			current_distance = 1;
+			pos *p = new pos;
+			p->row = 0;
+			fifo.push(*p);
+			do {
+				*p = fifo.front();
+				fifo.pop();
+				if (p->row == 0) {
+					if (fifo.empty()) {
+						break;
+					} else {
+						p = new pos;
+						p->row = 0;
+						fifo.push(*p);
+						current_distance += 1;
+						*p = fifo.front();
+						fifo.pop(); // p = fifo.first();
+					}
+				}
+				std::vector<pos> posicoes = vizinhanca4(p->row, p->col, rows, cols);
+				for (unsigned int i = 0; i < posicoes.size(); i++) {
+					pos pl = posicoes.at(i);
 
-	return imo;
+					// se plinha pertence a alguma bacia ou watershed
+					if (imd(pl.row, pl.col) < current_distance and (imo(pl.row, pl.col) > 0
+							or imo(pl.row, pl.col) == WSHED)) {
+
+						if (imo(pl.row, pl.col) > 0) {
+							if (imo(p->row, p->col) == MASK or imo(p->row, p->col) == WSHED)
+								imo(p->row, p->col) = imo(pl.row, pl.col);
+							else if (imo(p->row, p->col) != imo(pl.row, pl.col))
+								imo(p->row, p->col) = WSHED;
+						} else if (imo(p->row, p->col) == MASK)
+							imo(p->row, p->col) = WSHED;
+					} else if (imo(pl.row, pl.col) == MASK and imd(pl.row, pl.col) == 0) {
+						imd(pl.row, pl.col) = current_distance + 1;
+						fifo.push(pl);
+					}
+				}
+			} while (1);
+
+			int lastPixel2 = 0;
+			double sortlast = sorted(lastPixel2);
+			while (h == sorted(lastPixel2)) {
+				position = positions.at(lastPixel2);
+				imd(position.row, position.col) = 0;
+				if (imo(position.row, position.col) == MASK) {
+					current_label += 1;
+					fifo.push(position);
+					imo(position.row, position.col) = current_label;
+					while (!fifo.empty()) {
+						pos pl = fifo.front();
+						fifo.pop(); // pl = fifo.first()
+						std::vector<pos> posicoes = vizinhanca4(pl.row, pl.col, rows, cols);
+						for (unsigned int i = 0; i < posicoes.size(); i++) {
+							pos pll = posicoes.at(i);
+							if (imo(pll.row, pll.col) == MASK) {
+								fifo.push(pll);
+								imo(pll.row, pll.col) = current_label;
+							}
+						}
+					}
+				}
+
+				lastPixel2++;
+				if (lastPixel2 > (units - 1))
+					break;
+			}
+		}
+
+		return imo;
 }
 
 // Funcao vizinhanca dos pixels com conectividade 4
 std::vector<pos> Watershed::vizinhanca4(int lin, int col, int linhas, int colunas) {
 	std::vector<pos> positions;
-	if (col - 1 > 0) {
+	if (col - 1 >= 0) {
 		pos p;
-		p.c = col - 1;
-		p.l = lin;
+		p.col = col - 1;
+		p.row = lin;
 		positions.push_back(p);
 	}
 
-	if (col + 1 <= colunas) {
+	if (col + 1 < colunas) {
 		pos p;
-		p.c = col + 1;
-		p.l = lin;
+		p.col = col + 1;
+		p.row = lin;
 		positions.push_back(p);
 	}
-	if (lin - 1 > 0) {
+	if (lin - 1 >= 0) {
 		pos p;
-		p.c = col;
-		p.l = lin - 1;
+		p.col = col;
+		p.row = lin - 1;
 		positions.push_back(p);
 	}
-	if (lin + 1 <= linhas) {
+	if (lin + 1 < linhas) {
 		pos p;
-		p.c = col;
-		p.l = lin + 1;
+		p.col = col;
+		p.row = lin + 1;
 		positions.push_back(p);
 	}
-	/* conectividade8
-	if (col - 1 > 0 and lin - 1 > 0) {
-		pos p;
-		p.c = col - 1;
-		p.l = lin - 1;
-		positions.push_back(p);
-	}
-
-	if (col + 1 <= colunas and lin + 1 <= linhas) {
-		pos p;
-		p.c = col + 1;
-		p.l = lin + 1;
-		positions.push_back(p);
-	}
-	if (lin - 1 > 0 and col + 1 <= colunas) {
-		pos p;
-		p.c = col + 1;
-		p.l = lin - 1;
-		positions.push_back(p);
-	}
-	if (lin + 1 <= linhas and col - 1 > 0) {
-		pos p;
-		p.c = col - 1;
-		p.l = lin + 1;
-		positions.push_back(p);
-	}
-	/**/
 	return positions;
 }
 

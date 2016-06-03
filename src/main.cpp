@@ -25,6 +25,5 @@ int main()
 	io->SaveUMAT(um);
 
 	std::cout << "The end" << std::endl;
-	std::cin.get();
 	return 0;
 }

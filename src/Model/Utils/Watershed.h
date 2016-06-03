@@ -12,8 +12,8 @@
 #include <Eigen/Core>
 
 struct pos {
-	int l;
-	int c;
+	int row;
+	int col;
 };
 
 class Watershed {

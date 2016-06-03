@@ -15,13 +15,14 @@ IO::IO()
 {
 }
 
-MatrixXf IO::LoadData(const char * file_name)
+MatrixXf IO::LoadData(const char * file_name, bool normalize)
 {
 	vector<vector<float> > data_set = ReadData(file_name);
 
 	MatrixXf data_e = Vector2EingenMatrix(data_set);
 	//std::cout << data_e.row(1) << std::endl;
-	MapMinMax(data_e);
+	if (normalize)
+		MapMinMax(data_e);
 	//std::cout << data_e << std::endl;
 
 	return data_e;
