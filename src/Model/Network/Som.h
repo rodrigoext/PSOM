@@ -37,6 +37,6 @@ private:
 	void DetermineRadiusInitial();
 	void NInv(int n, int &width, int &height);
 	void CalculateUMatrix();
-	void CalculateUMatrix2();
+	void CalculatePMatrix();
 	//Node n;
 };

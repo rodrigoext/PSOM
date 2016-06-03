@@ -25,13 +25,9 @@ float Algorithm::Radius(float sigma, unsigned int current_epoch, float time_cons
 
 float Algorithm::CalculateNeuronDistance(Eigen::VectorXf neuron_1, Eigen::VectorXf neuron_2)
 {
-
-	std::cout << neuron_1.transpose() << std::endl;
-	std::cout << neuron_2.transpose() << std::endl;
 	neuron_1.transpose();
 	neuron_2.transpose();
 	float result = (neuron_1 - neuron_2).dot(neuron_1 - neuron_2);
-	std::cout << "--" << std::endl;
 	return sqrt(result);
 }
 
@@ -64,129 +60,9 @@ float Algorithm::get_distance(const std::vector<float> &vec1, const std::vector<
 	//return distance;
 }
 
-std::vector<std::vector<float>> Algorithm::GetUmat(int map_x, int map_y, int dimension_neurons, Eigen::MatrixXf w) {
-	vector<float> um;
-	vector<vector<vector<float>>> neurons(map_x, vector<vector<float>>(map_y, vector<float>(dimension_neurons)));
-
-	int count = 0;
-
-	/*for (int i = 0; i < map_x; ++i)
-	{
-		for (int j = 0; j < map_y; j++)
-		{
-			vector<float> temp;
-			for (int k = 0; k < dimension_neurons; ++k)
-
-			neurons[i][j] = w.row(count);
-			count++;
-		}
-	}*/
-
-	int X = 2 * map_x - 1;
-	int Y = 2 * map_y - 1;
-
-	vector<vector<float>> U(X, vector<float>(Y));
-
-	for (int i = 0; i < map_x; ++i)
-	{
-		for (int j = 0; j < map_y; ++j)
-		{
-			if (j < (map_y - 1))
-			{
-				float dx = get_distance(neurons[i][j], neurons[i][j + 1]);
-				U[2 * i][2 * j + 1] = dx;
-				um.push_back(dx);
-			}
-
-			if (i < (map_x - 1))
-			{
-				float dy = get_distance(neurons[i][j], neurons[i + 1][j]);
-				U[2 * i + 1][2 * j] = dy;
-				um.push_back(dy);
-			}
-
-			if (i < (map_x - 1) && j < (map_y - 1))
-			{
-				float dz1 = get_distance(neurons[i][j], neurons[i+1][j+1]);
-				float dz2 = get_distance(neurons[i+1][j], neurons[i][j+1]);
-				U[2 * i + 1][2 * j + 1] = (dz1 + dz2) / (2 * sqrt(2));
-			}
-		}
-
-		vector<float> a;
-
-		for (int i = 0; i < X; i += 2)
-		{
-			for (int j = 0; j < Y; j += 2)
-			{
-				if (j > 0 && i > 0 && i < (X - 1) && j < (Y - 1))
-				{
-					a.push_back(U[i][j-1]);
-					a.push_back(U[i][j+1]);
-					a.push_back(U[i-1][j]);
-					a.push_back(U[i+1][j]);
-				}
-				else if (i == 0 && j > 0 && j < (Y - 1))
-				{
-					a.push_back(U[i][j-1]);
-					a.push_back(U[i][j+1]);
-					a.push_back(U[i+1][j]);
-				}
-				else if (i == (X - 1) && j > 0 && j < (Y - 1))
-				{
-					a.push_back(U[i][j - 1]);
-					a.push_back(U[i][j + 1]);
-					a.push_back(U[i - 1][j]);
-				}
-				else if (j == 0 && i > 0 && i < (X - 1))
-				{
-					a.push_back(U[i][j + 1]);
-					a.push_back(U[i - 1][j]);
-					a.push_back(U[i + 1][j]);
-				}
-				else if (j == (Y - 1) && i > 0 && i < (X - 1))
-				{
-					a.push_back(U[i][j - 1]);
-					a.push_back(U[i - 1][j]);
-					a.push_back(U[i + 1][j]);
-				}
-				else if (j == 0 && i == 0)
-				{
-					a.push_back(U[i][j + 1]);
-					a.push_back(U[i + 1][j]);
-				}
-				else if (i == 0 && j > 0 && j < (Y - 1))
-				{
-					a.push_back(U[i][j]);
-					a.push_back(U[i][j]);
-					a.push_back(U[i][j]);
-				}
-				else if (j == (X - 1) && i == 0)
-				{
-					a.push_back(U[i][j - 1]);
-					a.push_back(U[i + 1][j]);
-				}
-				else if (j == 0 && i < (X - 1))
-				{
-					a.push_back(U[i][j + 1]);
-					a.push_back(U[i - 1][j]);
-				}
-				else if (j == (Y - 1) && i == (X - 1))
-				{
-					a.push_back(U[i][j - 1]);
-					a.push_back(U[i - 1][j]);
-				}
-				else
-				{
-					a.push_back(0.0f);
-				}
-
-				U[i][j] = CalculateMedian(a);
-			}
-		}
-	}
-
-	return U;
+Eigen::MatrixXf Algorithm::Reshape(Eigen::VectorXf &data, int rows, int cols)
+{
+	return Eigen::Map<Eigen::MatrixXf>(data.data(), rows, cols);
 }
 
 Algorithm::~Algorithm()

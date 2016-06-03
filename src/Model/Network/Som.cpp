@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <Model/Utils/Watershed.h>
+#include <Model/Utils/ParetoDensity.h>
 #include <Model/Utils/IO.h>
 
 Som::Som(Eigen::MatrixXf data, Som::Topology topology)
@@ -28,6 +29,7 @@ Som::Som(Eigen::MatrixXf data, std::shared_ptr<Parameter> params, Som::Topology 
 	InitGrid(topology);
 	std::shared_ptr<Train> t(new Train(*this));
 	CalculateUMatrix();
+	CalculatePMatrix();
 	//TrainSom();
 }
 
@@ -299,7 +301,18 @@ void Som::CalculateUMatrix()
 	std::cout << "UMAT:" << std::endl << umat << std::endl;
 	umat_ = umat;
 	io->SaveUMAT(umat);
+	delete io;
 	/*Watershed * w = new Watershed();
 	Eigen::MatrixXf r = w->transform(umat_);
 	std::cout << "r" << std::endl << r;*/
+}
+
+void Som::CalculatePMatrix()
+{
+	ParetoDensity pd;
+	Eigen::MatrixXf weigths = codebook_->GetWeights();
+	Eigen::VectorXf resultP = pd.CalculateDensity(data_, weigths, 0.2);
+	Eigen::MatrixXf PMatrix = algorithm_->Reshape(resultP, map_x, map_y);
+	IO *io = new IO();
+	io->SaveMatrix(PMatrix, "pmatrix");
 }

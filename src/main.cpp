@@ -14,10 +14,10 @@ int main()
 	//t->TestCodebookGeneration();
 
 	IO * io = new IO();
-	Eigen::MatrixXf data = io->LoadData("../PSOM/src/Data/data_seis.csv");
+	Eigen::MatrixXf data = io->LoadData("../PSOM/src/Data/twod.csv");
 	
 	Parameter * params;
-	params = new Parameter(30, 27, 100, 0.1f);
+	params = new Parameter(30, 24, 1000, 0.1f);
 	//params = new Parameter(14, 11, 200, 0.08f);
 	Som * som = new Som(data, std::make_shared<Parameter>(*params), som->RETANGULAR);
 
