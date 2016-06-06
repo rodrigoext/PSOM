@@ -304,6 +304,11 @@ void Som::CalculateUMatrix()
 	Watershed * w = new Watershed();
 	Eigen::MatrixXf r = w->transform(umat_);
 	io->SaveMatrix(r, "watershed");
+	Eigen::MatrixXf umat_filter = algorithm_->FilterMedian(umat_);
+	//r = w->transform(um_matlab);
+	io->SaveMatrix(umat_filter, "umatfilter");
+	Eigen::MatrixXf r2 = w->transform(umat_filter);
+	io->SaveMatrix(r2, "watershed_filter");
 	delete io;
 	delete w;
 }
@@ -312,13 +317,10 @@ void Som::CalculatePMatrix()
 {
 	ParetoDensity pd;
 	Eigen::MatrixXf weigths = codebook_->GetWeights();
-	Eigen::VectorXf resultP = pd.CalculateDensity(data_, weigths, 0.2);
-	Eigen::MatrixXf PMatrix = algorithm_->Reshape(resultP, map_x, map_y);
+	Eigen::VectorXf resultP = pd.CalculateDensity(data_, weigths, 0.4);
+	Eigen::MatrixXf p_matrix = algorithm_->Reshape(resultP, map_x, map_y);
+	Eigen::MatrixXf p_filtred = algorithm_->FilterMedian(p_matrix);
 	IO *io = new IO();
-	io->SaveMatrix(PMatrix, "pmatrix");
-	Watershed * w = new Watershed();
-	Eigen::MatrixXf r = w->transform(PMatrix);
-	io->SaveMatrix(r, "watershed_pmatrix");
+	io->SaveMatrix(p_filtred, "pmatrix");
 	delete io;
-	delete w;
 }

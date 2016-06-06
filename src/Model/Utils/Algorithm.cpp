@@ -47,6 +47,73 @@ float Algorithm::CalculateMedian(std::vector<float> &data)
 	return median;
 }
 
+Eigen::MatrixXf Algorithm::FilterMedian(Eigen::MatrixXf &data)
+{
+	int rows = data.rows();
+	int cols = data.cols();
+
+	Eigen::MatrixXf result(rows, cols);
+	Eigen::MatrixXf m33(3,3);
+	Eigen::MatrixXf tempm33(3,3);
+	Eigen::VectorXf sorted(9);
+
+	int lv1,cv2;
+	double min33;
+	for (int l = 0; l < rows; l++) {
+		for (int c = 0; c < cols; c++) {
+			min33 = data.maxCoeff();
+			for (int v1 = -1; v1 < 2; v1++)
+				for (int v2 = -1; v2 < 2; v2++){
+					lv1 = l+v1;
+					cv2 = c+v2;
+					if(lv1 >= 0 and cv2 >= 0 and lv1 < rows and cv2 < cols){
+						if (data(lv1,cv2)<min33);
+						min33 = data(lv1,cv2);
+					}
+				}
+
+			m33.setConstant(min33);
+
+			for (int v1 = -1; v1 < 2; v1++)
+				for (int v2 = -1; v2 < 2; v2++){
+					lv1 = l+v1;
+					cv2 = c+v2;
+					if(lv1 >= 0 and cv2 >= 0 and lv1 < rows and cv2 < cols){
+						m33(v1+1,v2+1) = data(lv1,cv2);
+					}
+				}
+
+			tempm33 = m33;
+			double max = data.maxCoeff();
+			int row_min = 0, col_min = 0;
+			double temp_min = tempm33(0,0);
+
+			for (int i = 0; i < 9; i++) {
+				for (int l2 = 0; l2 < 3; l2++) {
+					for (int c2 = 0; c2 < 3; c2++) {
+						if (temp_min > tempm33(l2, c2)) {
+							temp_min = tempm33(l2, c2);
+							row_min = l2;
+							col_min = c2;
+						}
+					}
+				}
+				sorted(i) = temp_min;
+				tempm33(row_min, col_min) = max + 1;
+				row_min = 0;
+				col_min = 0;
+				temp_min = tempm33(0, 0);
+			}
+
+			result(l,c) = sorted(5);
+		}
+	}
+
+	return result;
+
+};
+
+
 float Algorithm::get_distance(const std::vector<float> &vec1, const std::vector<float> &vec2)
 {
 	float distance = 0;

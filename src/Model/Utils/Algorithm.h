@@ -11,6 +11,7 @@ public:
 	float Radius(float sigma, unsigned int current_epoch, float time_constant);
 	float CalculateNeuronDistance(Eigen::VectorXf neuron_1, Eigen::VectorXf neuron_2);
 	float CalculateMedian(std::vector<float> &data);
+	Eigen::MatrixXf FilterMedian(Eigen::MatrixXf &data);
 	Eigen::MatrixXf Reshape(Eigen::VectorXf &data, int rows, int cols);
 	virtual ~Algorithm();
 private:
