@@ -328,8 +328,9 @@ void Som::CalculatePMatrix()
 	io->SaveMatrix(p_filtred, "pmatrix");
 	io->SaveMatrix(data_, "data");
 	delete io;
-	//CalculateUStarMatrix(umat_, p_filtred);
-	//CalculateUMatrixUltsch();
+	Eigen::MatrixXf umu = CalculateUMatrixUltsch();
+	CalculateUStarMatrix(umu, p_filtred);
+
 }
 
 void Som::CalculateUStarMatrix(Eigen::MatrixXf &umat, Eigen::MatrixXf &pmat)
@@ -341,9 +342,9 @@ void Som::CalculateUStarMatrix(Eigen::MatrixXf &umat, Eigen::MatrixXf &pmat)
 	Eigen::MatrixXf ustarmat(linhas,colunas);
 	ustarmat.setConstant(0);
 
-	double plow;
+	float plow;
 
-	double meanp,maxp,maxp2;
+	float meanp,maxp,maxp2;
 	meanp = pmat.sum() / (linhas*colunas);
 	maxp = pmat.maxCoeff();
 	for (int l = 0; l < linhas; l++){
@@ -356,6 +357,10 @@ void Som::CalculateUStarMatrix(Eigen::MatrixXf &umat, Eigen::MatrixXf &pmat)
 	Eigen::MatrixXf ustar_filtred = algorithm_->FilterMedian(ustarmat);
 	IO * io = new IO();
 	io->SaveMatrix(ustar_filtred, "ustar");
+	Watershed *w = new Watershed();
+	Eigen::MatrixXf ustar_w = w->transform(ustar_filtred);
+	io->SaveMatrix(ustar_w, "ustarw");
+	delete io;
 }
 
 float Som::CalculatePlow(Eigen::MatrixXf &pmat, int li, int ci)
@@ -365,16 +370,14 @@ float Som::CalculatePlow(Eigen::MatrixXf &pmat, int li, int ci)
 	int counter = 0;
 	for (int l = 0; l < linhas; l++) {
 		for (int c = 0; c < colunas; c++) {
-			if(li < linhas && ci < colunas)
-				if (pmat(li,ci) < pmat(l,c))
-					counter++;
+			if (pmat(li,ci) < pmat(l,c))
+				counter++;
 		}
 	}
-
-	return static_cast<float>(counter / (linhas*colunas));
+	return (float)counter / (float)(linhas*colunas);
 }
 
-void Som::CalculateUMatrixUltsch()
+Eigen::MatrixXf Som::CalculateUMatrixUltsch()
 {
 	std::cout << "calculating UMatrixUltsch" << std::endl;
 	Eigen::MatrixXf umatriz(map_x, map_y);
@@ -385,7 +388,7 @@ void Som::CalculateUMatrixUltsch()
 	float dtemp;
 	int unidades = map_x*map_y;
 	for (int i = 0; i < unidades; i++) {
-		NInv(i, nl, na);
+		NInv(i, na, nl);
 		counter = 0;
 		du = 0;
 
@@ -395,7 +398,7 @@ void Som::CalculateUMatrixUltsch()
 			linha = na + v1;
 			if (linha >= 0 and linha < map_x){
 				//dtemp = d(i,n(linha,nl));
-				dtemp = algorithm_->CalculateNeuronDistance(codebook_->GetWeights().row(i), codebook_->GetWeights().row(linha + (nl - 1) * map_x));
+				dtemp = (codebook_->GetWeights().row(i) - codebook_->GetWeights().row(linha+nl*map_x)).squaredNorm();
 				du += dtemp;
 
 				if (max < dtemp)
@@ -410,7 +413,7 @@ void Som::CalculateUMatrixUltsch()
 			coluna = nl + v1;
 			if (coluna >= 0 and coluna < map_y){
 				//dtemp = d(i,n(na,coluna));
-				dtemp = algorithm_->CalculateNeuronDistance(codebook_->GetWeights().row(i), codebook_->GetWeights().row(na + (coluna - 1) * map_x));
+				dtemp = (codebook_->GetWeights().row(i) - codebook_->GetWeights().row(na+coluna*map_x)).squaredNorm();
 				du += dtemp;
 
 				if (max < dtemp)
@@ -423,4 +426,5 @@ void Som::CalculateUMatrixUltsch()
 	IO * io = new IO();
 	io->SaveMatrix(umatriz, "umultsch");
 	delete io;
+	return umatriz;
 }

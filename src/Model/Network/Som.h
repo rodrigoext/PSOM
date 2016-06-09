@@ -40,6 +40,6 @@ private:
 	void CalculatePMatrix();
 	void CalculateUStarMatrix(Eigen::MatrixXf &umat, Eigen::MatrixXf &pmat);
 	float CalculatePlow(Eigen::MatrixXf &pmat, int li, int ci);
-	void CalculateUMatrixUltsch();
+	Eigen::MatrixXf CalculateUMatrixUltsch();
 	//Node n;
 };
