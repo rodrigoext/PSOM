@@ -24,6 +24,7 @@ Som::Som(Eigen::MatrixXf data, std::shared_ptr<Parameter> params, Som::Topology 
 	algorithm_.reset(new Algorithm());
 	algorithm_->SetTotalEpoch(params_->train_len_);
 	codebook_.reset(new Codebook(params_->map_x_, params_->map_y_, data_.cols()));
+	codebook_->Generate(data);
 	//std::cout << codebook_->GetWeights() << std::endl;
 	//std::cout << "---------------------------------------" << std::endl;
 	InitGrid(topology);
@@ -40,7 +41,7 @@ void Som::InitGrid(Som::Topology topology)
 	switch (topology)
 	{
 	case HEXAGONAL:
-		for (int i = 1; i <= map_x*map_y; i++) 
+		for (int i = 1; i <= map_x*map_y; i++)
 		{
 			NInv(i, height, width);
 			grid_(i - 1, 0) = static_cast<float>(width);
@@ -50,24 +51,27 @@ void Som::InitGrid(Som::Topology topology)
 		}
 		break;
 	case RETANGULAR:
-		for (int i = 1; i <= map_x*map_y; ++i)
+		for (int i = 0; i < map_x*map_y; ++i)
 		{
-			NInv(i, height, width);
+			/*NInv(i, height, width);
 			grid_(i - 1, 0) = static_cast<float>(width);
-			grid_(i - 1, 1) = static_cast<float>(height);
+			grid_(i - 1, 1) = static_cast<float>(height);*/
+			NInv(i, height, width);
+			grid_(i, 0) = static_cast<float>(width);
+			grid_(i, 1) = static_cast<float>(height);
 		}
 		break;
 	default:
 		break;
 	}
-	std::cout << "grid -------" << std::endl;
+	/*std::cout << "grid -------" << std::endl;
 	std::cout << grid_ << std::endl;
-	std::cout << "fim grid -------" << std::endl;
+	std::cout << "fim grid -------" << std::endl;*/
 }
 
 void Som::TrainSom()
 {
-	std::cout << "Training... " << std::endl;
+	std::cout << "Training... OLD!!" << std::endl;
 	float sigma = params_->sigma_;
 	//Eigen::VectorXf numerator(map_x * map_y * data_.cols());
 	//Eigen::VectorXf denominator(map_x * map_y);
@@ -181,10 +185,10 @@ void Som::DetermineRadiusInitial()
 
 void Som::NInv(int n, int &height, int &width)
 {
-	if (n > codebook_->GetWeights().rows())
+	if (n >= codebook_->GetWeights().rows())
 		return;
-	width = (n - 1) / map_x + 1;
-	height = n - (width - 1) * map_x;
+	width = n / map_x;
+	height = n - width * map_x;
 }
 
 void Som::CalculateUMatrix()
@@ -299,7 +303,7 @@ void Som::CalculateUMatrix()
 
 	}
 	std::cout << "UMAT:" << std::endl << umat << std::endl;
-	umat_ = umat;
+	umat_ = algorithm_->FilterMedian(umat);
 	io->SaveUMAT(umat);
 	Watershed * w = new Watershed();
 	Eigen::MatrixXf r = w->transform(umat_);
@@ -317,10 +321,106 @@ void Som::CalculatePMatrix()
 {
 	ParetoDensity pd;
 	Eigen::MatrixXf weigths = codebook_->GetWeights();
-	Eigen::VectorXf resultP = pd.CalculateDensity(data_, weigths, 0.4);
+	Eigen::VectorXf resultP = pd.CalculateDensity(data_, weigths, umat_.maxCoeff());
 	Eigen::MatrixXf p_matrix = algorithm_->Reshape(resultP, map_x, map_y);
 	Eigen::MatrixXf p_filtred = algorithm_->FilterMedian(p_matrix);
 	IO *io = new IO();
 	io->SaveMatrix(p_filtred, "pmatrix");
+	io->SaveMatrix(data_, "data");
+	delete io;
+	//CalculateUStarMatrix(umat_, p_filtred);
+	//CalculateUMatrixUltsch();
+}
+
+void Som::CalculateUStarMatrix(Eigen::MatrixXf &umat, Eigen::MatrixXf &pmat)
+{
+	std::cout << "calculating ustar" << std::endl;
+	int linhas = umat.rows();
+	int colunas = umat.cols();
+
+	Eigen::MatrixXf ustarmat(linhas,colunas);
+	ustarmat.setConstant(0);
+
+	double plow;
+
+	double meanp,maxp,maxp2;
+	meanp = pmat.sum() / (linhas*colunas);
+	maxp = pmat.maxCoeff();
+	for (int l = 0; l < linhas; l++){
+		for (int c = 0; c < colunas; c++){
+			plow = CalculatePlow(pmat,l,c);
+			ustarmat(l,c) = umat(l,c) * plow;
+		}
+	}
+
+	Eigen::MatrixXf ustar_filtred = algorithm_->FilterMedian(ustarmat);
+	IO * io = new IO();
+	io->SaveMatrix(ustar_filtred, "ustar");
+}
+
+float Som::CalculatePlow(Eigen::MatrixXf &pmat, int li, int ci)
+{
+	int linhas = pmat.rows();
+	int colunas = pmat.cols();
+	int counter = 0;
+	for (int l = 0; l < linhas; l++) {
+		for (int c = 0; c < colunas; c++) {
+			if(li < linhas && ci < colunas)
+				if (pmat(li,ci) < pmat(l,c))
+					counter++;
+		}
+	}
+
+	return static_cast<float>(counter / (linhas*colunas));
+}
+
+void Som::CalculateUMatrixUltsch()
+{
+	std::cout << "calculating UMatrixUltsch" << std::endl;
+	Eigen::MatrixXf umatriz(map_x, map_y);
+	int na, nl,counter;
+	float du,di;
+	int linha,coluna;
+	float max = 0;
+	float dtemp;
+	int unidades = map_x*map_y;
+	for (int i = 0; i < unidades; i++) {
+		NInv(i, nl, na);
+		counter = 0;
+		du = 0;
+
+		for (int v1 = -1; v1 < 2; v1++){
+			if (v1==0)
+				v1++;
+			linha = na + v1;
+			if (linha >= 0 and linha < map_x){
+				//dtemp = d(i,n(linha,nl));
+				dtemp = algorithm_->CalculateNeuronDistance(codebook_->GetWeights().row(i), codebook_->GetWeights().row(linha + (nl - 1) * map_x));
+				du += dtemp;
+
+				if (max < dtemp)
+					max = dtemp;
+				counter++ ;
+			}
+		}
+
+		for (int v1 = -1; v1 < 2; v1++){
+			if (v1==0)
+				v1++;
+			coluna = nl + v1;
+			if (coluna >= 0 and coluna < map_y){
+				//dtemp = d(i,n(na,coluna));
+				dtemp = algorithm_->CalculateNeuronDistance(codebook_->GetWeights().row(i), codebook_->GetWeights().row(na + (coluna - 1) * map_x));
+				du += dtemp;
+
+				if (max < dtemp)
+					max = dtemp;
+				counter++ ;
+			}
+		}
+		umatriz(na,nl) = du / counter;
+	}
+	IO * io = new IO();
+	io->SaveMatrix(umatriz, "umultsch");
 	delete io;
 }

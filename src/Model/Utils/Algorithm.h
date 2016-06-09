@@ -13,6 +13,7 @@ public:
 	float CalculateMedian(std::vector<float> &data);
 	Eigen::MatrixXf FilterMedian(Eigen::MatrixXf &data);
 	Eigen::MatrixXf Reshape(Eigen::VectorXf &data, int rows, int cols);
+	float CostFunction(const Eigen::MatrixXf &data, const Eigen::MatrixXf &weigths);
 	virtual ~Algorithm();
 private:
 	unsigned int total_epoch_;

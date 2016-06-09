@@ -38,5 +38,8 @@ private:
 	void NInv(int n, int &width, int &height);
 	void CalculateUMatrix();
 	void CalculatePMatrix();
+	void CalculateUStarMatrix(Eigen::MatrixXf &umat, Eigen::MatrixXf &pmat);
+	float CalculatePlow(Eigen::MatrixXf &pmat, int li, int ci);
+	void CalculateUMatrixUltsch();
 	//Node n;
 };

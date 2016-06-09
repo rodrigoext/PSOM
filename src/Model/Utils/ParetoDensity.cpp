@@ -31,7 +31,7 @@ Eigen::VectorXf ParetoDensity::CalculateDensity(Eigen::MatrixXf &data, Eigen::Ma
 		for (int j = 0; j < dataLength; ++j)
 		{
 			auto tempD = data.row(j);
-			float distance = algo->CalculateNeuronDistance(temp, tempD);
+			float distance = (temp - tempD).squaredNorm();
 			if (distance <= radius)
 			{
 				result(i) += 1;
