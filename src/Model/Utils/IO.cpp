@@ -20,7 +20,7 @@ MatrixXf IO::LoadData(const char * file_name, bool normalize)
 	vector<vector<float> > data_set = ReadData(file_name);
 
 	MatrixXf data_e = Vector2EingenMatrix(data_set);
-	//std::cout << data_e.row(1) << std::endl;
+	std::cout << data_e << std::endl;
 	if (normalize)
 		MapMinMax(data_e);
 	//std::cout << data_e << std::endl;
@@ -89,6 +89,15 @@ void IO::SaveUMAT(Eigen::MatrixXf &data)
 }
 
 void IO::SaveMatrix(Eigen::MatrixXf &data, std::string file_name) {
+	std::ofstream file("../PSOM/src/Data/"+file_name+".csv");
+	if (file.is_open())
+	{
+		file << data.format(CSVFormat);
+	}
+}
+
+void IO::SaveVector(Eigen::VectorXf &data, std::string file_name)
+{
 	std::ofstream file("../PSOM/src/Data/"+file_name+".csv");
 	if (file.is_open())
 	{

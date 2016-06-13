@@ -29,6 +29,8 @@ public:
 	Som(Eigen::MatrixXf data, Som::Topology topology = Topology::HEXAGONAL);
 	Som(Eigen::MatrixXf data, std::shared_ptr<Parameter> params, Som::Topology topology = Topology::HEXAGONAL);
 	Eigen::MatrixXf GetUMatrix() {return umat_;}
+	Eigen::MatrixXf CalculateImmersion(Eigen::MatrixXf &pmat, Eigen::MatrixXf &umat);
+	Eigen::VectorXf SimulateClustering(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion);
 	virtual ~Som();
 private:
 	void InitGrid(Som::Topology topology);
@@ -38,8 +40,9 @@ private:
 	void NInv(int n, int &width, int &height);
 	void CalculateUMatrix();
 	void CalculatePMatrix();
-	void CalculateUStarMatrix(Eigen::MatrixXf &umat, Eigen::MatrixXf &pmat);
+	Eigen::MatrixXf CalculateUStarMatrix(Eigen::MatrixXf &umat, Eigen::MatrixXf &pmat);
 	float CalculatePlow(Eigen::MatrixXf &pmat, int li, int ci);
 	Eigen::MatrixXf CalculateUMatrixUltsch();
+	int CalculateImersion(int linha, int coluna, Eigen::MatrixXf &mat);
 	//Node n;
 };

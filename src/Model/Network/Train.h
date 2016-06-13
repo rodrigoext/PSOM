@@ -8,7 +8,7 @@ class Train
 {
 public:
 	enum TrainType { CLASSIC, CLASSIC_DERIVATE};
-	Train(Som &som, Train::TrainType train_type = TrainType::CLASSIC, bool fine_adjustment = false);
+	Train(Som &som, Train::TrainType train_type = TrainType::CLASSIC, bool fine_adjustment = true);
 	virtual ~Train();
 private:
 	bool fine_adjustment_;

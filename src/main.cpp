@@ -14,15 +14,12 @@ int main()
 	//t->TestCodebookGeneration();
 
 	IO * io = new IO();
-	Eigen::MatrixXf data = io->LoadData("../PSOM/src/Data/chainlink.csv");
+	Eigen::MatrixXf data = io->LoadData("../PSOM/src/Data/umsom.csv", false);
 	
 	Parameter * params;
-	params = new Parameter(30, 30, 1000, 0.1f);
+	params = new Parameter(30, 30, 900, 0.1f);
 	//params = new Parameter(14, 11, 200, 0.08f);
 	Som * som = new Som(data, std::make_shared<Parameter>(*params), som->RETANGULAR);
-
-	Eigen::MatrixXf um = som->GetUMatrix();
-	io->SaveUMAT(um);
 
 	std::cout << "The end" << std::endl;
 	return 0;

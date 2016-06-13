@@ -41,13 +41,13 @@ void Som::InitGrid(Som::Topology topology)
 	switch (topology)
 	{
 	case HEXAGONAL:
-		for (int i = 1; i <= map_x*map_y; i++)
+		for (int i = 0; i <= map_x*map_y; ++i)
 		{
 			NInv(i, height, width);
-			grid_(i - 1, 0) = static_cast<float>(width);
-			grid_(i - 1, 1) = static_cast<float>(height) * 0.8660;
+			grid_(i, 0) = static_cast<float>(width);
+			grid_(i, 1) = static_cast<float>(height) * 0.8660;
 			if (height % 2 == 0)
-				grid_(i - 1, 0) += 0.5;
+				grid_(i, 0) += 0.5;
 		}
 		break;
 	case RETANGULAR:
@@ -302,7 +302,7 @@ void Som::CalculateUMatrix()
 		}
 
 	}
-	std::cout << "UMAT:" << std::endl << umat << std::endl;
+	std::cout << "Calculating UMatrix" << std::endl;
 	umat_ = algorithm_->FilterMedian(umat);
 	io->SaveUMAT(umat);
 	Watershed * w = new Watershed();
@@ -327,13 +327,23 @@ void Som::CalculatePMatrix()
 	IO *io = new IO();
 	io->SaveMatrix(p_filtred, "pmatrix");
 	io->SaveMatrix(data_, "data");
-	delete io;
-	Eigen::MatrixXf umu = CalculateUMatrixUltsch();
-	CalculateUStarMatrix(umu, p_filtred);
 
+	Eigen::MatrixXf umu = CalculateUMatrixUltsch();
+	Eigen::MatrixXf ustar = CalculateUStarMatrix(umu, p_filtred);
+	Watershed *w = new Watershed();
+	Eigen::MatrixXf ustar_w = w->transform(ustar);
+	Eigen::MatrixXf um_w = w->transform(umu);
+	io->SaveMatrix(ustar_w, "ustarw");
+	std::cout << "Calculating Immersion" << std::endl;
+	Eigen::MatrixXf imm = CalculateImmersion(p_filtred, um_w);
+	io->SaveMatrix(imm, "immersion");
+	std::cout << "Simulating" << std::endl;
+	Eigen::VectorXf sim = SimulateClustering(data_, ustar_w, imm);
+	io->SaveVector(sim, "simulation");
+	delete io;
 }
 
-void Som::CalculateUStarMatrix(Eigen::MatrixXf &umat, Eigen::MatrixXf &pmat)
+Eigen::MatrixXf Som::CalculateUStarMatrix(Eigen::MatrixXf &umat, Eigen::MatrixXf &pmat)
 {
 	std::cout << "calculating ustar" << std::endl;
 	int linhas = umat.rows();
@@ -357,10 +367,8 @@ void Som::CalculateUStarMatrix(Eigen::MatrixXf &umat, Eigen::MatrixXf &pmat)
 	Eigen::MatrixXf ustar_filtred = algorithm_->FilterMedian(ustarmat);
 	IO * io = new IO();
 	io->SaveMatrix(ustar_filtred, "ustar");
-	Watershed *w = new Watershed();
-	Eigen::MatrixXf ustar_w = w->transform(ustar_filtred);
-	io->SaveMatrix(ustar_w, "ustarw");
 	delete io;
+	return ustar_filtred;
 }
 
 float Som::CalculatePlow(Eigen::MatrixXf &pmat, int li, int ci)
@@ -421,10 +429,124 @@ Eigen::MatrixXf Som::CalculateUMatrixUltsch()
 				counter++ ;
 			}
 		}
-		umatriz(na,nl) = du / counter;
+		umatriz(na,nl) = (du / counter);
 	}
 	IO * io = new IO();
 	io->SaveMatrix(umatriz, "umultsch");
 	delete io;
 	return umatriz;
+}
+
+Eigen::MatrixXf Som::CalculateImmersion(Eigen::MatrixXf &pmat, Eigen::MatrixXf &umat)
+{
+	Eigen::MatrixXf result(pmat.rows(),pmat.cols());
+	Eigen::MatrixXf umattemp = umat*-1;
+	int temp = 0;
+	int ltemp,ctemp;
+	for (int l = 0 ; l < map_x ; l++){
+		for (int c = 0; c < map_y; c++){
+			temp = CalculateImersion(l,c,umattemp);
+			NInv(temp,ltemp,ctemp);
+			result(l,c) = CalculateImersion(ltemp,ctemp,pmat);
+		}
+	}
+	return result;
+}
+
+int Som::CalculateImersion(int linha, int coluna, Eigen::MatrixXf &mat) {
+	double max;
+
+	int maxIt = (map_x*map_y)/2;
+	int itAtual = 0;
+
+	int linhaAtual = linha,colunaAtual = coluna;
+	int linhaFinal = 0,colunaFinal = 0;
+	int lverif,cverif;
+
+	max = mat(linha,coluna);
+
+	while (true) {
+		lverif = linhaAtual - 1;
+		if(lverif >= 0){
+			if(mat(linhaAtual,colunaAtual) <= mat(lverif,colunaAtual)){
+				max = mat(lverif,colunaAtual);
+				linhaFinal = lverif;
+				colunaFinal = colunaAtual;
+			}
+		}
+
+		lverif = linhaAtual + 1;
+		if(lverif < map_x){
+			if(mat(linhaAtual,colunaAtual) <= mat(lverif,colunaAtual))
+				if (mat(lverif,colunaAtual) >= max){
+					max = mat(lverif,colunaAtual);
+					linhaFinal = lverif;
+					colunaFinal = colunaAtual;
+				}
+		}
+
+		cverif = colunaAtual - 1;
+		if(cverif >= 0){
+			if(mat(linhaAtual,colunaAtual) <= mat(linhaAtual,cverif))
+				if (mat(linhaAtual,cverif) >= max){
+					max = mat(linhaAtual,cverif);
+					linhaFinal = linhaAtual;
+					colunaFinal = cverif;
+				}
+		}
+
+		cverif = colunaAtual + 1;
+		if(cverif < map_y){
+			if(mat(linhaAtual,colunaAtual) <= mat(linhaAtual,cverif))
+				if (mat(linhaAtual,cverif) >= max){
+					max = mat(linhaAtual,cverif);
+					linhaFinal = linhaAtual;
+					colunaFinal = cverif;
+				}
+		}
+
+		if (linhaAtual==linhaFinal and colunaAtual==colunaFinal)
+			break;
+
+		if (linhaFinal==0 or colunaFinal==0){
+			linhaFinal = linhaAtual;
+			colunaFinal = colunaAtual;
+			break;
+		}
+
+		linhaAtual = linhaFinal;
+		colunaAtual = colunaFinal;
+
+		if (itAtual++ > maxIt)
+			break;
+	}
+
+	return linhaFinal+colunaFinal*map_x;
+}
+
+Eigen::VectorXf Som::SimulateClustering(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion)
+{
+	Eigen::VectorXf retorno(data.rows());
+
+	float min, dist;
+	int menorN;
+	int lin,col;
+	int tempMap;
+	for (int i = 0 ; i < data.rows() ; i++){
+		min = algorithm_->CalculateNeuronDistance(codebook_->GetWeights().row(1), data.row(i));
+		menorN = 0;
+		for (int j = 0; j < map_x*map_y ; j++ ){
+			dist = algorithm_->CalculateNeuronDistance(codebook_->GetWeights().row(j), data.row(i));
+			if (dist < min){
+				menorN = j;
+				min = dist;
+			}
+		}
+		NInv(menorN,lin,col);
+		tempMap = immersion(lin,col);
+		NInv(tempMap,lin,col);
+		retorno(i) = watershed(lin,col);
+	}
+
+	return retorno;
 }

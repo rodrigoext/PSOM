@@ -25,9 +25,6 @@ float Algorithm::Radius(float sigma, unsigned int current_epoch, float time_cons
 
 float Algorithm::CalculateNeuronDistance(Eigen::VectorXf neuron_1, Eigen::VectorXf neuron_2)
 {
-	//neuron_1.transpose();
-	//neuron_2.transpose();
-	//float result = (neuron_1 - neuron_2).dot(neuron_1 - neuron_2);
 	return (neuron_1 - neuron_2).squaredNorm();
 }
 

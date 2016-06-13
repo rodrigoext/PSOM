@@ -24,7 +24,7 @@ bool Train::ClassicSomTrain(Som & som)
 	float hci_exp = 0.0f;
 	Eigen::MatrixXf::Index index;
 	Eigen::MatrixXf weights = som.codebook_->GetWeights();
-	//#pragma omp parallel for
+	#pragma omp parallel for
 	for (int current_epoch = 0; current_epoch < som.params_->train_len_; ++current_epoch)
 	{
 		sigma = som.algorithm_->Radius(som.params_->sigma_, current_epoch, som.params_->time_constant_);
@@ -46,16 +46,15 @@ bool Train::ClassicSomTrain(Som & som)
 
 		}
 	}
+	std::cout << "Ajuste fino" << std::endl;
 	if (fine_adjustment_)
 	{
 		//Ajuste fino
-		som.params_->SetSigma(10.0f);
-		som.params_->SetLearningRate(0.1f);
+		sigma = 0.1f;
+		learning_rate = 0.01f;
 
-		for (int current_epoch = 0; current_epoch < som.params_->train_len_; ++current_epoch)
+		for (int current_epoch = 0; current_epoch < 100; ++current_epoch)
 		{
-			sigma = som.algorithm_->Radius(som.params_->sigma_, current_epoch, som.params_->time_constant_);
-			learning_rate = som.algorithm_->LearningRate(som.params_->learning_rate_, current_epoch);
 			int rand_sample = rand() % (som.data_.rows() + 1);
 			auto sample = som.data_.row(rand_sample);
 			//get BMU
@@ -70,15 +69,10 @@ bool Train::ClassicSomTrain(Som & som)
 					hci_exp = std::exp((-dist) / (2 * sigma2));
 					weights.row(n) += learning_rate * hci_exp * (sample - weights.row(n));
 				}
-
 			}
 		}
 	}
-
 	som.codebook_->SetWeightsEndTrain(weights);
-	std::cout << "Final weights" << std::endl;
-	std::cout << weights << std::endl;
-
 	return true;
 }
 
