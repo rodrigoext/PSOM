@@ -24,11 +24,13 @@ Som::Som(Eigen::MatrixXf data, std::shared_ptr<Parameter> params, Som::Topology 
 	algorithm_.reset(new Algorithm());
 	algorithm_->SetTotalEpoch(params_->train_len_);
 	codebook_.reset(new Codebook(params_->map_x_, params_->map_y_, data_.cols()));
-	codebook_->Generate(data);
+	//codebook_->Generate(data);
 	//std::cout << codebook_->GetWeights() << std::endl;
 	//std::cout << "---------------------------------------" << std::endl;
 	InitGrid(topology);
-	std::shared_ptr<Train> t(new Train(*this));
+	//std::shared_ptr<Train> t(new Train(*this));
+	IO * io = new IO();
+	codebook_->SetWeightsEndTrain(io->LoadData("../PSOM/src/Data/codebook_me.csv", false));
 	CalculateUMatrix();
 	CalculatePMatrix();
 	//TrainSom();
@@ -532,6 +534,9 @@ Eigen::VectorXf Som::SimulateClustering(Eigen::MatrixXf &data, Eigen::MatrixXf &
 	int menorN;
 	int lin,col;
 	int tempMap;
+	int temp1, temp2;
+	temp1 = 1;
+//#pragma omp parallel for
 	for (int i = 0 ; i < data.rows() ; i++){
 		min = algorithm_->CalculateNeuronDistance(codebook_->GetWeights().row(1), data.row(i));
 		menorN = 0;
@@ -545,7 +550,10 @@ Eigen::VectorXf Som::SimulateClustering(Eigen::MatrixXf &data, Eigen::MatrixXf &
 		NInv(menorN,lin,col);
 		tempMap = immersion(lin,col);
 		NInv(tempMap,lin,col);
-		retorno(i) = watershed(lin,col);
+		temp1 = watershed(lin,col);
+		if(temp1 != -2)
+			temp2 = temp1;
+		retorno(i) = temp2;
 	}
 
 	return retorno;

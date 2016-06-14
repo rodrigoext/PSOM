@@ -16,6 +16,11 @@ figure;surface(umat);
 title('Umat');
 figure;surface(pmatrix);
 title('PMatrix');
+
+figure;imagesc(umat');
+title('Umat');
+figure;imagesc(pmatrix');
+title('PMatrix');
 %figure;imagesc(watershed);
 %title('Watershed');
 %figure;imagesc(watershed_filter);
@@ -23,11 +28,13 @@ title('PMatrix');
 figure;surface(umatfilter);
 title('Umat filter');
 figure;surface(ustar);
-title('UStar');
+figure;imagesc(ustar');
+%title('UStar');
 figure;surface(umultsch);
 title('UMatrix Ultsch');
 figure;surface(ustarw);
 title('UStar Watershed');
+figure;imagesc(ustarw);
 figure;surface(immersion);
 title('Immersion');
 
@@ -41,7 +48,12 @@ hold on;
 plot(codebook(:,1), codebook(:,2),'*r');
 title('Codebook vs Input');
 
-figure;gscatter(data(:,1), data(:,2), simulation);
+figure;gscatter(data(:,1), data(:,2), data(:,3), simulation);
+
+figure;plot3(data(:,1), data(:,2), data(:,3), '*b');
+hold on;
+plot3(codebook(:,1), codebook(:,2), codebook(:,3), '*r');
+title('Codebook vs Input');
 
 % 
 % figure;plot3(data(:,1), data(:,2), data(:,3), '*b');
