@@ -8,7 +8,7 @@ Codebook::Codebook(unsigned int size_map_x, unsigned int size_map_y, unsigned in
 {
 	size_ = size_map_x * size_map_y;
 	dimension_ = dimension;
-	//Generate();
+	Generate();
 }
 
 Eigen::MatrixXf Codebook::GetWeights()
