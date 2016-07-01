@@ -28,9 +28,9 @@ Som::Som(Eigen::MatrixXf data, std::shared_ptr<Parameter> params, Som::Topology 
 	//std::cout << codebook_->GetWeights() << std::endl;
 	//std::cout << "---------------------------------------" << std::endl;
 	InitGrid(topology);
-	//std::shared_ptr<Train> t(new Train(*this));
-	IO * io = new IO();
-	codebook_->SetWeightsEndTrain(io->LoadData("../PSOM/src/Data/codebook_me.csv", false));
+	std::shared_ptr<Train> t(new Train(*this));
+//	IO * io = new IO();
+//	codebook_->SetWeightsEndTrain(io->LoadData("../PSOM/src/Data/codebook_me.csv", false));
 	CalculateUMatrix();
 	CalculatePMatrix();
 	//TrainSom();
