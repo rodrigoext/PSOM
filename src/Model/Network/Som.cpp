@@ -24,17 +24,10 @@ Som::Som(Eigen::MatrixXf data, std::shared_ptr<Parameter> params, Som::Topology 
 	algorithm_.reset(new Algorithm());
 	algorithm_->SetTotalEpoch(params_->train_len_);
 	codebook_.reset(new Codebook(params_->map_x_, params_->map_y_, data_.cols()));
-	//codebook_->Generate(data);
-	//std::cout << codebook_->GetWeights() << std::endl;
-	//std::cout << "---------------------------------------" << std::endl;
 	InitGrid(topology);
-	// std::shared_ptr<Train> t(new Train(*this));
-//	IO * io = new IO();
-//	codebook_->SetWeightsEndTrain(io->LoadData("../PSOM/src/Data/codebook_me.csv", false));
 	TrainSom();
 	CalculateUMatrix();
 	CalculatePMatrix();
-	//TrainSom();
 }
 
 void Som::InitGrid(Som::Topology topology)
@@ -67,14 +60,11 @@ void Som::InitGrid(Som::Topology topology)
 	default:
 		break;
 	}
-	/*std::cout << "grid -------" << std::endl;
-	std::cout << grid_ << std::endl;
-	std::cout << "fim grid -------" << std::endl;*/
 }
 
 void Som::TrainSom()
 {
-	std::cout << "Training... " << std::endl;
+	std::cout << "Training... ";
 	float sigma = params_->sigma_;
 	int dim = data_.cols();
 	float dist, learning_rate = 0.0f;
@@ -102,10 +92,10 @@ void Som::TrainSom()
 			}
 		}
 	}
-	std::cout << "Ajuste fino" << std::endl;
+	
 	if (params_->fine_tune_)
 	{
-		//Ajuste fino
+		//Fine tune
 		sigma = 0.1f;
 		learning_rate = 0.01f;
 
@@ -129,7 +119,7 @@ void Som::TrainSom()
 		}
 	}
 	codebook_->SetWeightsEndTrain(weights);
-	std::cout << "Train finished" << std::endl;
+	std::cout << "OK!" << std::endl;
 }
 
 void Som::CalculateMapSize()
@@ -204,7 +194,6 @@ void Som::CalculateUMatrix()
 	//Eigen::MatrixXf neurons(map_x, map_y);
 	
 	int count = 0;
-	std::cout << "neurons" << std::endl;
 	for (int j = 0; j < map_y; ++j)
 	{
 		for (int i = 0; i < map_x; ++i)

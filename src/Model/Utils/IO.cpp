@@ -20,11 +20,9 @@ MatrixXf IO::LoadData(const char * file_name, bool normalize)
 	vector<vector<float> > data_set = ReadData(file_name);
 
 	MatrixXf data_e = Vector2EingenMatrix(data_set);
-	std::cout << data_e << std::endl;
 	if (normalize)
 		MapMinMax(data_e);
-	//std::cout << data_e << std::endl;
-
+	std::cout << " OK!" << std::endl;
 	return data_e;
 }
 
@@ -37,7 +35,7 @@ vector<vector<float> > IO::ReadData(const char * file_name)
 
 	infile.open(file_name);
 
-	cerr << "Reading data..." << endl;
+	cerr << "Reading data...";
 
 	if (infile.is_open())
 	{

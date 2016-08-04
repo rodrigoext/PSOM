@@ -42,15 +42,12 @@ BUILDLIST := $(patsubst src/%,$(BUILDDIR)/%,$(INCDIRS))
 
 # Shared Compiler Flags
 CFLAGS := -c
-INC := -I src $(INCLIST) -I src libs/eigen
+INC := -I src $(INCLIST) -I src
 LIB := -L /usr/local/lib
 
 # Platform Specific Compiler Flags
 ifeq ($(UNAME_S),Linux)
 	CFLAGS += -std=gnu++11 -O2 # -fPIC
-
-	# PostgreSQL Special
-	PG_VER := 9.3
 	INC += -I libs/eigen
 	LIB += -L libs/eigen
 else
