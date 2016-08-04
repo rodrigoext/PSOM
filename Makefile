@@ -23,7 +23,7 @@ BUILDDIR := build
 TARGETDIR := bin
 
 # Targets
-EXECUTABLE := SantaCruzServer
+EXECUTABLE := SOM
 TARGET := $(TARGETDIR)/$(EXECUTABLE)
 
 # Final Paths
@@ -36,14 +36,14 @@ OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 
 # Folder Lists
 # Note: Intentionally excludes the root of the include folder so the lists are clean
-INCDIRS := $(shell find libs/**/* -name '*.h' -exec dirname {} \; | sort | uniq)
-INCLIST := $(patsubst libs/%,-I include/%,$(INCDIRS))
-BUILDLIST := $(patsubst libs/%,$(BUILDDIR)/%,$(INCDIRS))
+INCDIRS := $(shell find src/**/* -name '*.h' -exec dirname {} \; | sort | uniq)
+INCLIST := $(patsubst src/%,-I src/%,$(INCDIRS))
+BUILDLIST := $(patsubst src/%,$(BUILDDIR)/%,$(INCDIRS))
 
 # Shared Compiler Flags
 CFLAGS := -c
-INC := -I include $(INCLIST) -I /usr/local/include
-LIB := -L /usr/local/lib -lsantacruzengine -lsantacruzlib -larcadia -lcorinth -lyaml-cpp -lzmq -lhiredis -lbondoas
+INC := -I src $(INCLIST) -I src libs/eigen
+LIB := -L /usr/local/lib
 
 # Platform Specific Compiler Flags
 ifeq ($(UNAME_S),Linux)
@@ -51,8 +51,8 @@ ifeq ($(UNAME_S),Linux)
 
 	# PostgreSQL Special
 	PG_VER := 9.3
-	INC += -I /usr/pgsql-$(PG_VER)/include
-	LIB += -L /usr/pgsql-$(PG_VER)/lib
+	INC += -I libs/eigen
+	LIB += -L libs/eigen
 else
 	CFLAGS += -std=c++11 -stdlib=libc++ -O2
 endif
