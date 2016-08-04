@@ -30,6 +30,7 @@ public:
 	Eigen::MatrixXf GetUMatrix() {return umat_;}
 	Eigen::MatrixXf CalculateImmersion(Eigen::MatrixXf &pmat, Eigen::MatrixXf &umat);
 	Eigen::VectorXf SimulateClustering(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion);
+	Eigen::VectorXf SimulateClusteringParallel((Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion);
 	virtual ~Som();
 private:
 	void InitGrid(Som::Topology topology);

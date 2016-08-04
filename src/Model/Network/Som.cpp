@@ -92,7 +92,7 @@ void Som::TrainSom()
 			}
 		}
 	}
-	
+
 	if (params_->fine_tune_)
 	{
 		//Fine tune
@@ -515,7 +515,7 @@ int Som::CalculateImersion(int linha, int coluna, Eigen::MatrixXf &mat) {
 
 Eigen::VectorXf Som::SimulateClustering(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion)
 {
-	Eigen::VectorXf retorno(data.rows());
+	Eigen::VectorXf result(data.rows());
 
 	float min, dist;
 	int menorN;
@@ -540,8 +540,40 @@ Eigen::VectorXf Som::SimulateClustering(Eigen::MatrixXf &data, Eigen::MatrixXf &
 		temp1 = watershed(lin,col);
 		if(temp1 != -2)
 			temp2 = temp1;
-		retorno(i) = temp2;
+		result(i) = temp2;
 	}
 
-	return retorno;
+	return result;
+}
+Eigen::VectorXf Som::SimulateClusteringParallel(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion)
+{
+	Eigen::VectorXf result(data.rows());
+
+	float min, dist;
+	int menorN;
+	int lin,col;
+	int tempMap;
+	int temp1, temp2;
+	temp1 = 1;
+	#pragma omp parallel
+	for (int i = 0 ; i < data.rows() ; i++){
+		min = algorithm_->CalculateNeuronDistance(codebook_->GetWeights().row(1), data.row(i));
+		menorN = 0;
+		for (int j = 0; j < map_x*map_y ; j++ ){
+			dist = algorithm_->CalculateNeuronDistance(codebook_->GetWeights().row(j), data.row(i));
+			if (dist < min){
+				menorN = j;
+				min = dist;
+			}
+		}
+		NInv(menorN,lin,col);
+		tempMap = immersion(lin,col);
+		NInv(tempMap,lin,col);
+		temp1 = watershed(lin,col);
+		if(temp1 != -2)
+			temp2 = temp1;
+		result(i) = temp2;
+	}
+
+	return result;
 }
