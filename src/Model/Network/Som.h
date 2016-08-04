@@ -4,7 +4,6 @@
 #include "Model/Utils/Parameter.h"
 #include "Model/Utils/Algorithm.h"
 #include "Model/Network/Codebook.h"
-#include "Model/Network/Train.h"
 
 #include <Eigen/Core>
 #include <memory>

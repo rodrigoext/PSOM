@@ -28,9 +28,10 @@ Som::Som(Eigen::MatrixXf data, std::shared_ptr<Parameter> params, Som::Topology 
 	//std::cout << codebook_->GetWeights() << std::endl;
 	//std::cout << "---------------------------------------" << std::endl;
 	InitGrid(topology);
-	std::shared_ptr<Train> t(new Train(*this));
+	// std::shared_ptr<Train> t(new Train(*this));
 //	IO * io = new IO();
 //	codebook_->SetWeightsEndTrain(io->LoadData("../PSOM/src/Data/codebook_me.csv", false));
+	TrainSom();
 	CalculateUMatrix();
 	CalculatePMatrix();
 	//TrainSom();
@@ -73,45 +74,19 @@ void Som::InitGrid(Som::Topology topology)
 
 void Som::TrainSom()
 {
-	std::cout << "Training... OLD!!" << std::endl;
+	std::cout << "Training... " << std::endl;
 	float sigma = params_->sigma_;
-	//Eigen::VectorXf numerator(map_x * map_y * data_.cols());
-	//Eigen::VectorXf denominator(map_x * map_y);
 	int dim = data_.cols();
 	float dist, learning_rate = 0.0f;
 	float hci_exp = 0.0f;
 	Eigen::MatrixXf::Index index;
 	Eigen::MatrixXf weights = codebook_->GetWeights();
+	//#pragma omp parallel for
 	for (int current_epoch = 0; current_epoch < params_->train_len_; ++current_epoch)
 	{
 		sigma = algorithm_->Radius(params_->sigma_, current_epoch, params_->time_constant_);
 		learning_rate = algorithm_->LearningRate(params_->learning_rate_, current_epoch);
-		int rand_sample = rand() % (data_.rows() + 1);
-		auto sample = data_.row(rand_sample);
-		//get BMU
-		(weights.rowwise() - sample).rowwise().squaredNorm().minCoeff(&index);
-		auto bmu = grid_.row(index);
-		for (int n = 0; n < weights.rows(); ++n)
-		{
-			dist = (bmu - grid_.row(n)).squaredNorm();
-			float sigma2 = sigma*sigma;
-			if (dist < sigma2)
-			{
-				hci_exp = std::exp((- dist) / (2 * sigma2));
-				weights.row(n) += learning_rate * hci_exp * (sample - weights.row(n));
-			}
-			
-		}
-	}
-	//Ajuste fino
-	params_->SetSigma(0.1f);
-	params_->SetLearningRate(0.01f);
-
-	for (int current_epoch = 0; current_epoch < params_->train_len_; ++current_epoch)
-	{
-		sigma = algorithm_->Radius(params_->sigma_, current_epoch, params_->time_constant_);
-		learning_rate = algorithm_->LearningRate(params_->learning_rate_, current_epoch);
-		int rand_sample = rand() % (data_.rows() + 1);
+		int rand_sample = rand() % (data_.rows());
 		auto sample = data_.row(rand_sample);
 		//get BMU
 		(weights.rowwise() - sample).rowwise().squaredNorm().minCoeff(&index);
@@ -125,13 +100,36 @@ void Som::TrainSom()
 				hci_exp = std::exp((-dist) / (2 * sigma2));
 				weights.row(n) += learning_rate * hci_exp * (sample - weights.row(n));
 			}
-
 		}
 	}
+	std::cout << "Ajuste fino" << std::endl;
+	if (params_->fine_tune_)
+	{
+		//Ajuste fino
+		sigma = 0.1f;
+		learning_rate = 0.01f;
 
+		for (int current_epoch = 0; current_epoch < 2*params_->train_len_; ++current_epoch)
+		{
+			int rand_sample = rand() % (data_.rows());
+			auto sample = data_.row(rand_sample);
+			//get BMU
+			(weights.rowwise() - sample).rowwise().squaredNorm().minCoeff(&index);
+			auto bmu = grid_.row(index);
+			for (int n = 0; n < weights.rows(); ++n)
+			{
+				dist = (bmu - grid_.row(n)).squaredNorm();
+				float sigma2 = sigma*sigma;
+				if (dist < sigma2)
+				{
+					hci_exp = std::exp((-dist) / (2 * sigma2));
+					weights.row(n) += learning_rate * hci_exp * (sample - weights.row(n));
+				}
+			}
+		}
+	}
 	codebook_->SetWeightsEndTrain(weights);
-	std::cout << "Final weights" << std::endl;
-	std::cout << codebook_->GetWeights() << std::endl;
+	std::cout << "Train finished" << std::endl;
 }
 
 void Som::CalculateMapSize()

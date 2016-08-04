@@ -17,7 +17,7 @@ int main()
 	Eigen::MatrixXf data = io->LoadData("../PSOM/src/Data/twod.csv", false);
 	
 	Parameter * params;
-	params = new Parameter(30, 30, 10000, 0.1f);
+	params = new Parameter(30, 30, 10000, 0.1f, true);
 	//params = new Parameter(14, 11, 200, 0.08f);
 	Som * som = new Som(data, std::make_shared<Parameter>(*params), som->RETANGULAR);
 

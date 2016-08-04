@@ -12,8 +12,13 @@ public:
 	float sigma_;
 	float learning_rate_;
 	float time_constant_;
+	bool fine_tune_;
 	//Parameter(std::list<std::string> &params);
-	Parameter(unsigned int map_size_x, unsigned int map_size_y, unsigned int train_length, float learning_rate);
+	Parameter(unsigned int map_size_x, 
+				unsigned int map_size_y, 
+				unsigned int train_length, 
+				float learning_rate, 
+				bool fine_tune = false);
 	void SetLearningRate(float value);
 	void SetSigma(float value);
 	virtual ~Parameter();
