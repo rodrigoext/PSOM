@@ -25,7 +25,7 @@ Som::Som(Eigen::MatrixXf data, std::shared_ptr<Parameter> params, Som::Topology 
 	algorithm_->SetTotalEpoch(params_->train_len_);
 	codebook_.reset(new Codebook(params_->map_x_, params_->map_y_, data_.cols()));
 	InitGrid(topology);
-	TrainSom();
+	Train();
 	CalculateUMatrix();
 	CalculatePMatrix();
 }
@@ -62,7 +62,7 @@ void Som::InitGrid(Som::Topology topology)
 	}
 }
 
-void Som::TrainSom()
+void Som::Train()
 {
 	std::cout << "Training... ";
 	float sigma = params_->sigma_;
