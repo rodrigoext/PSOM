@@ -329,6 +329,8 @@ void Som::CalculatePMatrix()
 	std::cout << "Simulating" << std::endl;
 	Eigen::VectorXf sim = SimulateClustering(data_, ustar_w, imm);
 	io->SaveVector(sim, "simulation");
+	Eigen::VectorXf simP = SimulateClusteringParallel(data_, ustar_w, imm);
+	io->SaveVector(simP, "simulationP");
 	delete io;
 }
 
@@ -555,7 +557,7 @@ Eigen::VectorXf Som::SimulateClusteringParallel(Eigen::MatrixXf &data, Eigen::Ma
 	int tempMap;
 	int temp1, temp2;
 	temp1 = 1;
-	#pragma omp parallel
+	#pragma omp parallel shared(result)
 	for (int i = 0 ; i < data.rows() ; i++){
 		min = algorithm_->CalculateNeuronDistance(codebook_->GetWeights().row(1), data.row(i));
 		menorN = 0;
