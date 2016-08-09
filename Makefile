@@ -49,6 +49,7 @@ LIB := -L /usr/local/lib
 ifeq ($(UNAME_S),Linux)
 	CFLAGS += -std=gnu++11 -O2 # -fPIC
 	INC += -I libs/eigen
+	INC += -I /usr/include/python3.4m/
 	LIB += -L libs/eigen
 else
 	CFLAGS += -std=c++11 -stdlib=libc++ -O2

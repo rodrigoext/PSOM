@@ -205,7 +205,7 @@ void Som::CalculateUMatrix()
 	IO *io = new IO();
 	Eigen::MatrixXf codebook = codebook_->GetWeights();
 	io->SaveMatrix(codebook, "codebook");
-
+	std::cout << "Calculating U-Matrix... ";
 	for (int j = 0; j < y; ++j)
 	{
 		for (int i = 0; i < x; ++i)
@@ -291,19 +291,11 @@ void Som::CalculateUMatrix()
 		}
 
 	}
-	std::cout << "Calculating UMatrix" << std::endl;
+	std::cout << "OK!" << std::endl;
 	umat_ = algorithm_->FilterMedian(umat);
 	io->SaveUMAT(umat);
-	Watershed * w = new Watershed();
-	Eigen::MatrixXf r = w->transform(umat_);
-	io->SaveMatrix(r, "watershed");
-	Eigen::MatrixXf umat_filter = algorithm_->FilterMedian(umat_);
-	//r = w->transform(um_matlab);
-	io->SaveMatrix(umat_filter, "umatfilter");
-	Eigen::MatrixXf r2 = w->transform(umat_filter);
-	io->SaveMatrix(r2, "watershed_filter");
+	io->SaveMatrix(umat_, "umatfiltred");
 	delete io;
-	delete w;
 }
 
 void Som::CalculatePMatrix()
@@ -336,7 +328,7 @@ void Som::CalculatePMatrix()
 
 Eigen::MatrixXf Som::CalculateUStarMatrix(Eigen::MatrixXf &umat, Eigen::MatrixXf &pmat)
 {
-	std::cout << "calculating ustar" << std::endl;
+	std::cout << "Calculating U*-Matrix... ";
 	int linhas = umat.rows();
 	int colunas = umat.cols();
 
@@ -354,7 +346,7 @@ Eigen::MatrixXf Som::CalculateUStarMatrix(Eigen::MatrixXf &umat, Eigen::MatrixXf
 			ustarmat(l,c) = umat(l,c) * plow;
 		}
 	}
-
+	std::cout << "OK!" << std::endl;
 	Eigen::MatrixXf ustar_filtred = algorithm_->FilterMedian(ustarmat);
 	IO * io = new IO();
 	io->SaveMatrix(ustar_filtred, "ustar");
@@ -378,7 +370,7 @@ float Som::CalculatePlow(Eigen::MatrixXf &pmat, int li, int ci)
 
 Eigen::MatrixXf Som::CalculateUMatrixUltsch()
 {
-	std::cout << "calculating UMatrixUltsch" << std::endl;
+	std::cout << "Calculating U-Matrix Ultsch... ";
 	Eigen::MatrixXf umatriz(map_x, map_y);
 	int na, nl,counter;
 	float du,di;
@@ -422,6 +414,7 @@ Eigen::MatrixXf Som::CalculateUMatrixUltsch()
 		}
 		umatriz(na,nl) = (du / counter);
 	}
+	std::cout << "OK!" << std::endl;
 	IO * io = new IO();
 	io->SaveMatrix(umatriz, "umultsch");
 	delete io;
