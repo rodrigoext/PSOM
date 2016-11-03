@@ -24,19 +24,22 @@ Watershed::~Watershed() {
 }
 
 Eigen::MatrixXf Watershed::transform(const Eigen::MatrixXf &input) {
+	std::cout << "input" << std::endl;
+	std::cout << input << std::endl;
 	Eigen::MatrixXf imi = input;
 	int rows = imi.rows();
 	int cols = imi.cols();
 	int units = rows * cols;
-	imi = imi * LEVELS;
+	// imi = imi * LEVELS;
 
 	for (int l = 0; l < rows; l++) {
 		for (int c = 0; c < cols; c++) {
-			imi(l, c) = ((int) (imi(l, c) + 0.5)) + 1;
+			// imi(l, c) = ((int) (imi(l, c) + 0.5)) + 1;
+			imi(l, c) = (int) (imi(l, c) * 100);
 		}
 	}
-	// std::cout << imi.rows() << " || " << imi.cols() << std::endl;
-	// std::cout << imi << std::endl;
+	std::cout << imi.rows() << " || " << imi.cols() << std::endl;
+	std::cout << imi << std::endl;
 	std::queue<pos> fifo;
 
 	Eigen::MatrixXf imo(imi);

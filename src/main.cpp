@@ -1,6 +1,5 @@
 #include <iostream>
 #include <memory>
-#include <Python.h>
 
 #include "Model/Network/NeuralNetwork.h"
 #include "Model/Network/Som.h"
