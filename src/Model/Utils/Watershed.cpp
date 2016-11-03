@@ -24,7 +24,7 @@ Watershed::~Watershed() {
 }
 
 Eigen::MatrixXf Watershed::transform(const Eigen::MatrixXf &input) {
-	Eigen::MatrixXf imi = input*10;
+	Eigen::MatrixXf imi = input;
 	int rows = imi.rows();
 	int cols = imi.cols();
 	int units = rows * cols;
@@ -35,7 +35,8 @@ Eigen::MatrixXf Watershed::transform(const Eigen::MatrixXf &input) {
 			imi(l, c) = ((int) (imi(l, c) + 0.5)) + 1;
 		}
 	}
-
+	// std::cout << imi.rows() << " || " << imi.cols() << std::endl;
+	// std::cout << imi << std::endl;
 	std::queue<pos> fifo;
 
 	Eigen::MatrixXf imo(imi);
@@ -81,6 +82,7 @@ Eigen::MatrixXf Watershed::transform(const Eigen::MatrixXf &input) {
 		col_min = 0;
 		temp_min = temp_mat(0, 0);
 	}
+
 	int last_pixel = 0;
 	pos position;
 	for (int h = hmin; h < hmax; ++h)
@@ -171,7 +173,8 @@ Eigen::MatrixXf Watershed::transform(const Eigen::MatrixXf &input) {
 				break;
 		}
 	}
-
+	std::cout << "labels" << std::endl;
+	std::cout << imo << std::endl;
 	return imo;
 }
 
@@ -205,4 +208,3 @@ std::vector<pos> Watershed::vizinhanca4(int lin, int col, int linhas, int coluna
 	}
 	return positions;
 }
-
