@@ -314,18 +314,19 @@ void Som::CalculatePMatrix()
 	io->SaveMatrix(ustar, "ustar");
 	Watershed *w = new Watershed();
 	Eigen::MatrixXf ustar_w = w->transform(ustar);
-	Eigen::MatrixXf um_w = w->transform(umu);
+	//Eigen::MatrixXf um_w = w->transform(umu);
 	io->SaveMatrix(ustar_w, "ustarw");
-	io->SaveMatrix(um_w, "umatw");
+	//io->SaveMatrix(um_w, "umatw");
 	std::cout << "Calculating Immersion" << std::endl;
-	Eigen::MatrixXf imm = CalculateImmersion(p_filtred, um_w);
+	Eigen::MatrixXf imm = CalculateImmersion(p_filtred, ustar_w);
 	io->SaveMatrix(imm, "immersion");
 	std::cout << "Simulating" << std::endl;
 	Eigen::VectorXf sim = SimulateClustering(data_, ustar_w, imm);
 	io->SaveVector(sim, "simulation");
-	Eigen::VectorXf simP = SimulateClusteringParallel(data_, um_w, imm);
+	Eigen::VectorXf simP = SimulateClusteringParallel(data_, ustar_w, imm);
 	io->SaveVector(simP, "simulationP");
 	delete io;
+	delete w;
 }
 
 Eigen::MatrixXf Som::CalculateUStarMatrix(Eigen::MatrixXf &umat, Eigen::MatrixXf &pmat)

@@ -6,6 +6,7 @@
  */
 
 #include <Model/Utils/Watershed.h>
+#include <Model/Utils/IO.h>
 #include <queue>
 #include <iostream>
 // Níveis de discretização da imagem
@@ -24,18 +25,22 @@ Watershed::~Watershed() {
 }
 
 Eigen::MatrixXf Watershed::transform(const Eigen::MatrixXf &input) {
+	Eigen::MatrixXf imi = input*100;
+
 	std::cout << "input" << std::endl;
-	std::cout << input << std::endl;
-	Eigen::MatrixXf imi = input;
+	std::cout << imi << std::endl;
+
 	int rows = imi.rows();
 	int cols = imi.cols();
 	int units = rows * cols;
-	// imi = imi * LEVELS;
-
+	IO * io;
+	io = new IO();
+	//imi = imi * LEVELS;
+	//io->MapMinMax(imi);
 	for (int l = 0; l < rows; l++) {
 		for (int c = 0; c < cols; c++) {
 			// imi(l, c) = ((int) (imi(l, c) + 0.5)) + 1;
-			imi(l, c) = (int) (imi(l, c) * 100);
+			imi(l, c) = (int) ((imi(l, c) + 1));
 		}
 	}
 	std::cout << imi.rows() << " || " << imi.cols() << std::endl;
