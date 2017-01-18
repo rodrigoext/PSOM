@@ -141,6 +141,24 @@ MatrixXf IO::Vector2EingenMatrix(vector<vector<float> > d)
 	return data_eigen;
 }
 
+Eigen::MatrixXf IO::LoadCSV(std::string file_name) {
+	std::ifstream indata;
+    indata.open("../PSOM/src/Data/"+file_name+".csv");
+    std::string line;
+    std::vector<float> values;
+    uint rows = 0;
+    while (std::getline(indata, line)) {
+        std::stringstream lineStream(line);
+        std::string cell;
+        while (std::getline(lineStream, cell, ',')) {
+            values.push_back(std::stof(cell));
+        }
+        ++rows;
+    }
+	Eigen::MatrixXf retorno = Eigen::Map<Eigen::MatrixXf>(values.data(), rows, values.size()/rows); 
+    return retorno;
+}
+
 IO::~IO()
 {
 }
