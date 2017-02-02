@@ -6,7 +6,7 @@
 #include "Model/Utils/Algorithm.h"
 #include "Model/Network/Codebook.h"
 
-#include <Eigen/Core>
+#include <Eigen>
 #include <memory>
 class Som : public NeuralNetwork
 {
@@ -14,6 +14,7 @@ protected:
 	Eigen::MatrixXf data_;
 	Eigen::MatrixXf grid_;
 	Eigen::MatrixXf umat_;
+    Eigen::VectorXi facies_;
 	std::shared_ptr<Parameter> params_;
 	std::shared_ptr<Codebook> codebook_;
 	std::shared_ptr<Algorithm> algorithm_;
@@ -28,10 +29,11 @@ public:
 	Som(Eigen::MatrixXf data, Som::Topology topology = Topology::RETANGULAR);
 	Som(Eigen::MatrixXf data, std::shared_ptr<Parameter> params, Som::Topology topology = Topology::RETANGULAR);
 	void Train();
-	Eigen::MatrixXf GetUMatrix() {return umat_;}
+    Eigen::MatrixXf GetUMatrix() { return umat_; }
 	Eigen::MatrixXf CalculateImmersion(Eigen::MatrixXf &pmat, Eigen::MatrixXf &umat);
 	Eigen::VectorXf SimulateClustering(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion);
-	Eigen::VectorXf SimulateClusteringParallel(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion);
+    Eigen::VectorXi SimulateClusteringParallel(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion);
+    Eigen::VectorXi getFacies() { return facies_; }
 	virtual ~Som();
 private:
 	void InitGrid(Som::Topology topology);

@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <Eigen/Dense>
+#include <Eigen>
 
 class ParetoDensity {
 public:

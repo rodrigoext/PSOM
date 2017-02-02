@@ -26,7 +26,7 @@ Som::Som(Eigen::MatrixXf data, std::shared_ptr<Parameter> params, Som::Topology 
 	codebook_.reset(new Codebook(params_->map_x_, params_->map_y_, data_.cols()));
 	InitGrid(topology);
 	Train();
-	CalculateUMatrix();
+    CalculateUMatrix();
 	CalculatePMatrix();
 }
 
@@ -321,10 +321,11 @@ void Som::CalculatePMatrix()
 	Eigen::MatrixXf imm = CalculateImmersion(p_filtred, ustar_w);
 	io->SaveMatrix(imm, "immersion");
 	std::cout << "Simulating" << std::endl;
-	Eigen::VectorXf sim = SimulateClustering(data_, ustar_w, imm);
-	io->SaveVector(sim, "simulation");
-	Eigen::VectorXf simP = SimulateClusteringParallel(data_, ustar_w, imm);
-	io->SaveVector(simP, "simulationP");
+    //Eigen::VectorXf sim = SimulateClustering(data_, ustar_w, imm);
+    //io->SaveVector(sim, "simulation");
+    Eigen::VectorXi simP = SimulateClusteringParallel(data_, ustar_w, imm);
+    facies_ = simP;
+    io->SaveVectorINT(simP, "simulationP");
 	delete io;
 	delete w;
 }
@@ -543,9 +544,9 @@ Eigen::VectorXf Som::SimulateClustering(Eigen::MatrixXf &data, Eigen::MatrixXf &
 
 	return result;
 }
-Eigen::VectorXf Som::SimulateClusteringParallel(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion)
+Eigen::VectorXi Som::SimulateClusteringParallel(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion)
 {
-	Eigen::VectorXf result(data.rows());
+    Eigen::VectorXi result(data.rows());
 
 	float min, dist;
 	int menorN;
@@ -553,10 +554,10 @@ Eigen::VectorXf Som::SimulateClusteringParallel(Eigen::MatrixXf &data, Eigen::Ma
 	int tempMap;
 	int temp1, temp2;
 	temp1 = 1;
-	#pragma omp parallel shared(result)
+    min = 9999.0f;
+    menorN = 0;
+#pragma omp parallel for shared(result), private(min, menorN)
 	for (int i = 0 ; i < data.rows() ; i++){
-		min = algorithm_->CalculateNeuronDistance(codebook_->GetWeights().row(1), data.row(i));
-		menorN = 0;
 		for (int j = 0; j < map_x*map_y ; j++ ){
 			dist = algorithm_->CalculateNeuronDistance(codebook_->GetWeights().row(j), data.row(i));
 			if (dist < min){
@@ -565,12 +566,9 @@ Eigen::VectorXf Som::SimulateClusteringParallel(Eigen::MatrixXf &data, Eigen::Ma
 			}
 		}
 		NInv(menorN,lin,col);
-		tempMap = immersion(lin,col);
-		NInv(tempMap,lin,col);
-		temp1 = watershed(lin,col);
-		if(temp1 != -2)
-			temp2 = temp1;
-		result(i) = temp2;
+        //tempMap = immersion(lin,col);
+        //NInv(tempMap,lin,col);
+        result(i) = watershed(lin,col);;
 	}
 
 	return result;
