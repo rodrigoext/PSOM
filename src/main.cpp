@@ -20,7 +20,8 @@ int main(int argc, char *argv[])
 	Parameter * params;
 	params = new Parameter(10, 10, 15000, 0.1f, true);
 	//params = new Parameter(14, 11, 200, 0.08f);
-	NeuralNetwork * som = new Som(data, std::make_shared<Parameter>(*params));
+	Som * som = new Som(data, std::make_shared<Parameter>(*params));
+	som->CalculateAllMatrix();
 	std::cout << "The end!" << std::endl;
 	return 0;
 }

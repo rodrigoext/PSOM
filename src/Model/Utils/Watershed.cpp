@@ -25,7 +25,7 @@ Watershed::~Watershed() {
 }
 
 Eigen::MatrixXf Watershed::transform(const Eigen::MatrixXf &input) {
-	Eigen::MatrixXf imi = input*100;
+	Eigen::MatrixXf imi = input*10;
 
 	std::cout << "input" << std::endl;
 	std::cout << imi << std::endl;

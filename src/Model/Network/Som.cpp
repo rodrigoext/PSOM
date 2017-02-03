@@ -95,11 +95,12 @@ void Som::Train()
 
 	if (params_->fine_tune_)
 	{
+		std::cout << "ajuste fino" << std::endl;
 		//Fine tune
 		sigma = 0.1f;
 		learning_rate = 0.01f;
 
-		for (int current_epoch = 0; current_epoch < 2*params_->train_len_; ++current_epoch)
+		for (int current_epoch = 0; current_epoch < 5*params_->train_len_; ++current_epoch)
 		{
 			int rand_sample = rand() % (data_.rows());
 			auto sample = data_.row(rand_sample);
@@ -183,6 +184,10 @@ void Som::NInv(int n, int &height, int &width)
 
 void Som::CalculateUMatrix()
 {
+	IO *io = new IO();
+	//Load for test
+	//Eigen::MatrixXf codebook_load = io->LoadCSV("codebook_bom");
+	//codebook_->SetWeightsEndTrain(codebook_load);
 	int y = map_x;
 	int x = map_y;
 	int ux = 2 * x - 1;
@@ -202,7 +207,7 @@ void Som::CalculateUMatrix()
 			count++;
 		}
 	}
-	IO *io = new IO();
+	
 	Eigen::MatrixXf codebook = codebook_->GetWeights();
 	io->SaveMatrix(codebook, "codebook");
 	std::cout << "Calculating U-Matrix... ";
@@ -300,25 +305,40 @@ void Som::CalculateUMatrix()
 
 void Som::CalculatePMatrix()
 {
+	std::cout << "Calculating PMatrix" << std::endl;
 	ParetoDensity pd;
 	Eigen::MatrixXf weigths = codebook_->GetWeights();
 	Eigen::VectorXf resultP = pd.CalculateDensity(data_, weigths, umat_.maxCoeff());
 	Eigen::MatrixXf p_matrix = algorithm_->Reshape(resultP, map_x, map_y);
-	Eigen::MatrixXf p_filtred = algorithm_->FilterMedian(p_matrix);
+	//pmat_ = algorithm_->FilterMedian(p_matrix);
+	pmat_ = p_matrix;
 	IO *io = new IO();
-	io->SaveMatrix(p_filtred, "pmatrix");
+	io->SaveMatrix(pmat_, "pmatrix");
 	io->SaveMatrix(data_, "data");
+	delete io;
+	std::cout << pmat_ << std::endl;
+}
+
+void Som::CalculateAllMatrix() {
+	std::cout << "Calculating..." << std::endl;
+	IO * io = new IO();
+	Algorithm * algo = new Algorithm();
+
+	//Load for test
+	Eigen::MatrixXf ustar_load = io->LoadCSV("ustar_bom");
 
 	Eigen::MatrixXf umu = CalculateUMatrixUltsch();
-	Eigen::MatrixXf ustar = CalculateUStarMatrix(umu, p_filtred);
+	Eigen::MatrixXf ustar = CalculateUStarMatrix(umu, pmat_) * 10;
 	io->SaveMatrix(ustar, "ustar");
 	Watershed *w = new Watershed();
-	Eigen::MatrixXf ustar_w = w->transform(ustar);
+	Eigen::MatrixXf ustar_w = w->transform(algo->FilterMedian(ustar));
+	//ustar_w = w->transform(ustar_load);
 	//Eigen::MatrixXf um_w = w->transform(umu);
 	io->SaveMatrix(ustar_w, "ustarw");
 	//io->SaveMatrix(um_w, "umatw");
+	//ustar_w = io->LoadCSV("ustarw_bom");
 	std::cout << "Calculating Immersion" << std::endl;
-	Eigen::MatrixXf imm = CalculateImmersion(p_filtred, ustar_w);
+	Eigen::MatrixXf imm = CalculateImmersion(pmat_, ustar_w);
 	io->SaveMatrix(imm, "immersion");
 	std::cout << "Simulating" << std::endl;
 	Eigen::VectorXf sim = SimulateClustering(data_, ustar_w, imm);
@@ -335,8 +355,8 @@ Eigen::MatrixXf Som::CalculateUStarMatrix(Eigen::MatrixXf &umat, Eigen::MatrixXf
 	int linhas = umat.rows();
 	int colunas = umat.cols();
 
+	std::cout << linhas << " " << colunas << std::endl;
 	Eigen::MatrixXf ustarmat(linhas,colunas);
-	ustarmat.setConstant(0);
 
 	float plow;
 
@@ -350,11 +370,10 @@ Eigen::MatrixXf Som::CalculateUStarMatrix(Eigen::MatrixXf &umat, Eigen::MatrixXf
 		}
 	}
 	std::cout << "OK!" << std::endl;
-	Eigen::MatrixXf ustar_filtred = algorithm_->FilterMedian(ustarmat);
 	IO * io = new IO();
-	io->SaveMatrix(ustar_filtred, "ustar");
+	io->SaveMatrix(ustarmat, "ustar");
 	delete io;
-	return ustar_filtred;
+	return ustarmat;
 }
 
 float Som::CalculatePlow(Eigen::MatrixXf &pmat, int li, int ci)

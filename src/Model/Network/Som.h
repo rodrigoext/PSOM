@@ -14,6 +14,7 @@ protected:
 	Eigen::MatrixXf data_;
 	Eigen::MatrixXf grid_;
 	Eigen::MatrixXf umat_;
+	Eigen::MatrixXf pmat_;
 	std::shared_ptr<Parameter> params_;
 	std::shared_ptr<Codebook> codebook_;
 	std::shared_ptr<Algorithm> algorithm_;
@@ -32,6 +33,7 @@ public:
 	Eigen::MatrixXf CalculateImmersion(Eigen::MatrixXf &pmat, Eigen::MatrixXf &umat);
 	Eigen::VectorXf SimulateClustering(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion);
 	Eigen::VectorXf SimulateClusteringParallel(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion);
+	void CalculateAllMatrix();
 	virtual ~Som();
 private:
 	void InitGrid(Som::Topology topology);
