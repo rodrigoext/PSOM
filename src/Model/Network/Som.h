@@ -6,7 +6,7 @@
 #include "Model/Utils/Algorithm.h"
 #include "Model/Network/Codebook.h"
 
-#include <Eigen/Core>
+#include <Eigen>
 #include <memory>
 class Som : public NeuralNetwork
 {
@@ -15,6 +15,9 @@ protected:
 	Eigen::MatrixXf grid_;
 	Eigen::MatrixXf umat_;
 	Eigen::MatrixXf pmat_;
+    Eigen::MatrixXf imm_;
+    Eigen::MatrixXf ustarw_;
+    Eigen::VectorXf class_;
 	std::shared_ptr<Parameter> params_;
 	std::shared_ptr<Codebook> codebook_;
 	std::shared_ptr<Algorithm> algorithm_;
@@ -33,7 +36,9 @@ public:
 	Eigen::MatrixXf CalculateImmersion(Eigen::MatrixXf &pmat, Eigen::MatrixXf &umat);
 	Eigen::VectorXf SimulateClustering(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion);
 	Eigen::VectorXf SimulateClusteringParallel(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion);
+    void ClusterMap();
 	void CalculateAllMatrix();
+    Eigen::VectorXf GetClassification() { return class_; }
 	virtual ~Som();
 private:
 	void InitGrid(Som::Topology topology);

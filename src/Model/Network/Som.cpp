@@ -332,20 +332,21 @@ void Som::CalculateAllMatrix() {
 	io->SaveMatrix(ustar, "ustar");
 	Watershed *w = new Watershed();
     //Eigen::MatrixXf ustar_w2 = w->transform_v2(algo->FilterMedian(ustar));
-    Eigen::MatrixXf ustar_w = w->transform_v2(algo->FilterMedian(ustar));
+    ustarw_ = w->transform_v2(algo->FilterMedian(ustar));
 	//ustar_w = w->transform(ustar_load);
 	//Eigen::MatrixXf um_w = w->transform(umu);
-	io->SaveMatrix(ustar_w, "ustarw");
+    io->SaveMatrix(ustarw_, "ustarw");
 	//io->SaveMatrix(um_w, "umatw");
 	//ustar_w = io->LoadCSV("ustarw_bom");
 	std::cout << "Calculating Immersion" << std::endl;
-	Eigen::MatrixXf imm = CalculateImmersion(pmat_, ustar_w);
-	io->SaveMatrix(imm, "immersion");
+    imm_ = CalculateImmersion(pmat_, ustarw_);
+    io->SaveMatrix(imm_, "immersion");
 	std::cout << "Simulating" << std::endl;
-	Eigen::VectorXf sim = SimulateClustering(data_, ustar_w, imm);
-	io->SaveVector(sim, "simulation");
-	Eigen::VectorXf simP = SimulateClusteringParallel(data_, ustar_w, imm);
-	io->SaveVector(simP, "simulationP");
+    //Eigen::VectorXf sim = SimulateClustering(data_, ustar_w, imm);
+    //io->SaveVector(sim, "simulation");
+    ClusterMap();
+    class_ = SimulateClusteringParallel(data_, ustarw_, imm_);
+    io->SaveVector(class_, "simulationP");
 	delete io;
 	delete w;
 }
@@ -563,35 +564,49 @@ Eigen::VectorXf Som::SimulateClustering(Eigen::MatrixXf &data, Eigen::MatrixXf &
 
 	return result;
 }
+
+void Som::ClusterMap() {
+    Eigen::VectorXf classesIm(map_x*map_y);
+    Eigen::VectorXf classes(map_x*map_y);
+    int row, col;
+    for (int n = 0; n < map_x*map_y; ++n) {
+        NInv(n, row, col);
+        classesIm(n) = imm_(row, col);
+        classes(n) = ustarw_(row, col);
+    }
+    std::cout << "saving" << std::endl;
+    IO io;
+    io.SaveVector(classesIm, "classesIm");
+    io.SaveVector(classes, "classes");
+}
+
 Eigen::VectorXf Som::SimulateClusteringParallel(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion)
 {
-	Eigen::VectorXf result(data.rows());
+    Eigen::VectorXf result(data.rows());
 
-	float min, dist;
-	int menorN;
-	int lin,col;
-	int tempMap;
-	int temp1, temp2;
-	temp1 = 1;
-	#pragma omp parallel shared(result)
-	for (int i = 0 ; i < data.rows() ; i++){
-		min = algorithm_->CalculateNeuronDistance(codebook_->GetWeights().row(1), data.row(i));
-		menorN = 0;
-		for (int j = 0; j < map_x*map_y ; j++ ){
-			dist = algorithm_->CalculateNeuronDistance(codebook_->GetWeights().row(j), data.row(i));
-			if (dist < min){
-				menorN = j;
-				min = dist;
-			}
-		}
-		NInv(menorN,lin,col);
-		tempMap = immersion(lin,col);
-		NInv(tempMap,lin,col);
-		temp1 = watershed(lin,col);
-		if(temp1 != -2)
-			temp2 = temp1;
-		result(i) = temp2;
-	}
+    float min, dist;
+    int menorN;
+    int lin,col;
+    int tempMap;
+    int temp1, temp2;
+    temp1 = 1;
+    #pragma omp parallel for shared(result)
+    for (int i = 0 ; i < data.rows() ; i++){
+        min = algorithm_->CalculateNeuronDistance(codebook_->GetWeights().row(1), data.row(i));
+        menorN = 0;
+        for (int j = 0; j < map_x*map_y ; j++ ){
+            dist = algorithm_->CalculateNeuronDistance(codebook_->GetWeights().row(j), data.row(i));
+            if (dist < min){
+                menorN = j;
+                min = dist;
+            }
+        }
+        NInv(menorN,lin,col);
+        tempMap = immersion(lin,col);
+        NInv(tempMap,lin,col);
+        temp1 = watershed(lin,col);
+        result(i) = temp1;
+    }
 
-	return result;
+    return result;
 }
