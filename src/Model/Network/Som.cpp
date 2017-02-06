@@ -325,13 +325,14 @@ void Som::CalculateAllMatrix() {
 	Algorithm * algo = new Algorithm();
 
 	//Load for test
-	Eigen::MatrixXf ustar_load = io->LoadCSV("ustar_bom");
+    //Eigen::MatrixXf ustar_load = io->LoadCSV("ustar_bom");
 
 	Eigen::MatrixXf umu = CalculateUMatrixUltsch();
 	Eigen::MatrixXf ustar = CalculateUStarMatrix(umu, pmat_) * 10;
 	io->SaveMatrix(ustar, "ustar");
 	Watershed *w = new Watershed();
-	Eigen::MatrixXf ustar_w = w->transform(algo->FilterMedian(ustar));
+    //Eigen::MatrixXf ustar_w2 = w->transform_v2(algo->FilterMedian(ustar));
+    Eigen::MatrixXf ustar_w = w->transform_v2(algo->FilterMedian(ustar));
 	//ustar_w = w->transform(ustar_load);
 	//Eigen::MatrixXf um_w = w->transform(umu);
 	io->SaveMatrix(ustar_w, "ustarw");
