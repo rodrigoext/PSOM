@@ -197,8 +197,8 @@ Eigen::MatrixXf Watershed::transform(const Eigen::MatrixXf &input) {
 }
 
 Eigen::MatrixXf Watershed::transform_v2(const Eigen::MatrixXf & input) {
-    //TODO: verifica se precisar transformar para escala cinza
-    Eigen::MatrixXf data(input*10);
+    //TODO: verifica se precisa transformar para escala cinza
+    Eigen::MatrixXf data(input*18);
     Eigen::MatrixXf lab(data.rows(), data.cols());
     Eigen::MatrixXf dist(data.rows(), data.cols());
     int units = data.cols() * data.cols();
@@ -217,6 +217,7 @@ Eigen::MatrixXf Watershed::transform_v2(const Eigen::MatrixXf & input) {
     std::vector<pos> position_sorted;
     Eigen::VectorXi pixels_sorted(data.rows() * data.cols());
     Eigen::MatrixXf temp_input(data);
+    std::cout << temp_input << std::endl;
     float temp_min;
     for (int i = 0; i < units; ++i) {
         temp_min = temp_input(0, 0);

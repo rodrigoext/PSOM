@@ -6,7 +6,7 @@
 #include "Model/Utils/Algorithm.h"
 #include "Model/Network/Codebook.h"
 
-#include <Eigen>
+#include <Eigen/Dense>
 #include <memory>
 class Som : public NeuralNetwork
 {
@@ -36,6 +36,7 @@ public:
 	Eigen::MatrixXf CalculateImmersion(Eigen::MatrixXf &pmat, Eigen::MatrixXf &umat);
 	Eigen::VectorXf SimulateClustering(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion);
 	Eigen::VectorXf SimulateClusteringParallel(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion);
+    Eigen::VectorXf SimulateWithNeurons();
     void ClusterMap();
 	void CalculateAllMatrix();
     Eigen::VectorXf GetClassification() { return class_; }

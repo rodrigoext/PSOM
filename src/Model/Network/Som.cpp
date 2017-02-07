@@ -319,37 +319,6 @@ void Som::CalculatePMatrix()
 	std::cout << pmat_ << std::endl;
 }
 
-void Som::CalculateAllMatrix() {
-	std::cout << "Calculating..." << std::endl;
-	IO * io = new IO();
-	Algorithm * algo = new Algorithm();
-
-	//Load for test
-    //Eigen::MatrixXf ustar_load = io->LoadCSV("ustar_bom");
-
-	Eigen::MatrixXf umu = CalculateUMatrixUltsch();
-	Eigen::MatrixXf ustar = CalculateUStarMatrix(umu, pmat_) * 10;
-	io->SaveMatrix(ustar, "ustar");
-	Watershed *w = new Watershed();
-    //Eigen::MatrixXf ustar_w2 = w->transform_v2(algo->FilterMedian(ustar));
-    ustarw_ = w->transform_v2(algo->FilterMedian(ustar));
-	//ustar_w = w->transform(ustar_load);
-	//Eigen::MatrixXf um_w = w->transform(umu);
-    io->SaveMatrix(ustarw_, "ustarw");
-	//io->SaveMatrix(um_w, "umatw");
-	//ustar_w = io->LoadCSV("ustarw_bom");
-	std::cout << "Calculating Immersion" << std::endl;
-    imm_ = CalculateImmersion(pmat_, ustarw_);
-    io->SaveMatrix(imm_, "immersion");
-	std::cout << "Simulating" << std::endl;
-    //Eigen::VectorXf sim = SimulateClustering(data_, ustar_w, imm);
-    //io->SaveVector(sim, "simulation");
-    ClusterMap();
-    class_ = SimulateClusteringParallel(data_, ustarw_, imm_);
-    io->SaveVector(class_, "simulationP");
-	delete io;
-	delete w;
-}
 
 Eigen::MatrixXf Som::CalculateUStarMatrix(Eigen::MatrixXf &umat, Eigen::MatrixXf &pmat)
 {
@@ -357,7 +326,6 @@ Eigen::MatrixXf Som::CalculateUStarMatrix(Eigen::MatrixXf &umat, Eigen::MatrixXf
 	int linhas = umat.rows();
 	int colunas = umat.cols();
 
-	std::cout << linhas << " " << colunas << std::endl;
 	Eigen::MatrixXf ustarmat(linhas,colunas);
 
 	float plow;
@@ -448,7 +416,8 @@ Eigen::MatrixXf Som::CalculateUMatrixUltsch()
 Eigen::MatrixXf Som::CalculateImmersion(Eigen::MatrixXf &pmat, Eigen::MatrixXf &umat)
 {
 	Eigen::MatrixXf result(pmat.rows(),pmat.cols());
-	Eigen::MatrixXf umattemp = umat*-1;
+    Eigen::MatrixXf umattemp = umat*-1;
+    //std::cout << umattemp << std::endl;
 	int temp = 0;
 	int ltemp,ctemp;
 	for (int l = 0 ; l < map_x ; l++){
@@ -467,8 +436,10 @@ int Som::CalculateImersion(int linha, int coluna, Eigen::MatrixXf &mat) {
 	int maxIt = (map_x*map_y)/2;
 	int itAtual = 0;
 
-	int linhaAtual = linha,colunaAtual = coluna;
-	int linhaFinal = 0,colunaFinal = 0;
+    int linhaAtual = linha;
+    int colunaAtual = coluna;
+    int linhaFinal = 0;
+    int colunaFinal = 0;
 	int lverif,cverif;
 
 	max = mat(linha,coluna);
@@ -513,10 +484,10 @@ int Som::CalculateImersion(int linha, int coluna, Eigen::MatrixXf &mat) {
 				}
 		}
 
-		if (linhaAtual==linhaFinal and colunaAtual==colunaFinal)
+        if (linhaAtual==linhaFinal and colunaAtual==colunaFinal)
 			break;
 
-		if (linhaFinal==0 or colunaFinal==0){
+        if (linhaFinal==0 or colunaFinal==0){
 			linhaFinal = linhaAtual;
 			colunaFinal = colunaAtual;
 			break;
@@ -610,3 +581,53 @@ Eigen::VectorXf Som::SimulateClusteringParallel(Eigen::MatrixXf &data, Eigen::Ma
 
     return result;
 }
+
+Eigen::VectorXf Som::SimulateWithNeurons() {
+    float min;
+    Eigen::MatrixXf weights = codebook_->GetWeights();
+    Eigen::VectorXf classes(data_.rows());
+    int best_neuron = 0;
+    for (int i = 0; i < data_.rows(); ++i) {
+        min = (data_.row(i) - weights.row(0)).squaredNorm();
+        for (int j = 0; j < map_x*map_y; ++j) {
+            if (min < (data_.row(i) - weights.row(j)).squaredNorm())
+                best_neuron = j;
+        }
+        classes[i] = best_neuron;
+    }
+    return classes;
+}
+
+void Som::CalculateAllMatrix() {
+    std::cout << "Calculating..." << std::endl;
+    IO * io = new IO();
+    Algorithm * algo = new Algorithm();
+
+    //Load for test
+    //Eigen::MatrixXf ustar_load = io->LoadCSV("ustar_bom");
+
+    Eigen::MatrixXf umu = CalculateUMatrixUltsch();
+    Eigen::MatrixXf ustar = CalculateUStarMatrix(umu, pmat_) * 10;
+    io->SaveMatrix(ustar, "ustar");
+    Watershed *w = new Watershed();
+    //Eigen::MatrixXf ustar_w2 = w->transform_v2(algo->FilterMedian(ustar));
+    ustarw_ = w->transform_v2(ustar);
+    //ustar_w = w->transform(ustar_load);
+    //Eigen::MatrixXf um_w = w->transform(umu);
+    io->SaveMatrix(ustarw_, "ustarw");
+    //io->SaveMatrix(um_w, "umatw");
+    //ustar_w = io->LoadCSV("ustarw_bom");
+    std::cout << "Calculating Immersion" << std::endl;
+    imm_ = CalculateImmersion(pmat_, ustar);
+    io->SaveMatrix(imm_, "immersion");
+    std::cout << "Simulating" << std::endl;
+    //Eigen::VectorXf sim = SimulateClustering(data_, ustar_w, imm);
+    //io->SaveVector(sim, "simulation");
+    ClusterMap();
+    class_ = SimulateClusteringParallel(data_, ustarw_, imm_);
+    //class_ = SimulateWithNeurons();
+    io->SaveVector(class_, "simulationP");
+    delete io;
+    delete w;
+}
+
