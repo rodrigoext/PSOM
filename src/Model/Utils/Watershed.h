@@ -9,7 +9,7 @@
 
 #include <vector>
 
-#include <Eigen/Core>
+#include <Eigen>
 
 struct pos {
 	int row;

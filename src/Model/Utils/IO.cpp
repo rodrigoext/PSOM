@@ -79,7 +79,7 @@ vector<vector<float> > IO::ReadData(const char * file_name)
 
 void IO::SaveUMAT(Eigen::MatrixXf &data)
 {
-	std::ofstream file("../PSOM/src/Data/umat.csv");
+    std::ofstream file("../kohonen/src/Data/umat.csv");
 	if (file.is_open())
 	{
 		file << data.format(CSVFormat);
@@ -87,7 +87,7 @@ void IO::SaveUMAT(Eigen::MatrixXf &data)
 }
 
 void IO::SaveMatrix(Eigen::MatrixXf &data, std::string file_name) {
-	std::ofstream file("../PSOM/src/Data/"+file_name+".csv");
+    std::ofstream file("../kohonen/src/Data/"+file_name+".csv");
 	if (file.is_open())
 	{
 		file << data.format(CSVFormat);
@@ -96,7 +96,7 @@ void IO::SaveMatrix(Eigen::MatrixXf &data, std::string file_name) {
 
 void IO::SaveVector(Eigen::VectorXf &data, std::string file_name)
 {
-	std::ofstream file("../PSOM/src/Data/"+file_name+".csv");
+    std::ofstream file("../kohonen/src/Data/"+file_name+".csv");
 	if (file.is_open())
 	{
 		file << data.format(CSVFormat);
@@ -143,7 +143,7 @@ MatrixXf IO::Vector2EingenMatrix(vector<vector<float> > d)
 
 Eigen::MatrixXf IO::LoadCSV(std::string file_name) {
 	std::ifstream indata;
-    indata.open("../PSOM/src/Data/"+file_name+".csv");
+    indata.open("../kohonen/src/Data/"+file_name+".csv");
     std::string line;
     std::vector<float> values;
     uint rows = 0;

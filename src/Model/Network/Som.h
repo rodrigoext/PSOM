@@ -6,7 +6,7 @@
 #include "Model/Utils/Algorithm.h"
 #include "Model/Network/Codebook.h"
 
-#include <Eigen/Dense>
+#include <Eigen>
 #include <memory>
 class Som : public NeuralNetwork
 {

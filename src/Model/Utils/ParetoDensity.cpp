@@ -20,11 +20,11 @@ ParetoDensity::~ParetoDensity() {
 
 Eigen::VectorXf ParetoDensity::CalculateDensity(Eigen::MatrixXf &data, Eigen::MatrixXf &centers, double radius)
 {
-	float distance;
 	int dataLength = data.rows();
 	Eigen::VectorXf result = Eigen::VectorXf::Zero(centers.rows());
 	std::shared_ptr<Algorithm> algo;
 	algo.reset(new Algorithm());
+#pragma omp parallel for
 	for(int i = 0; i < centers.rows(); ++i)
 	{
 		auto temp = centers.row(i);

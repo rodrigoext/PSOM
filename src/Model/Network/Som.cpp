@@ -416,7 +416,7 @@ Eigen::MatrixXf Som::CalculateUMatrixUltsch()
 Eigen::MatrixXf Som::CalculateImmersion(Eigen::MatrixXf &pmat, Eigen::MatrixXf &umat)
 {
 	Eigen::MatrixXf result(pmat.rows(),pmat.cols());
-    Eigen::MatrixXf umattemp = umat*-1;
+    Eigen::MatrixXf umattemp = umat*-10;
     //std::cout << umattemp << std::endl;
 	int temp = 0;
 	int ltemp,ctemp;
@@ -483,6 +483,7 @@ int Som::CalculateImersion(int linha, int coluna, Eigen::MatrixXf &mat) {
 					colunaFinal = cverif;
 				}
 		}
+//        std::cout << itAtual << " >> " << linhaFinal << " | " << colunaFinal << " : " << linhaFinal+colunaFinal*map_x << " = " << max << std::endl;
 
         if (linhaAtual==linhaFinal and colunaAtual==colunaFinal)
 			break;
@@ -499,6 +500,7 @@ int Som::CalculateImersion(int linha, int coluna, Eigen::MatrixXf &mat) {
 		if (itAtual++ > maxIt)
 			break;
 	}
+//    std::cout << "================" << std::endl;
 
 	return linhaFinal+colunaFinal*map_x;
 }
@@ -555,30 +557,30 @@ Eigen::VectorXf Som::SimulateClusteringParallel(Eigen::MatrixXf &data, Eigen::Ma
 {
     Eigen::VectorXf result(data.rows());
 
-    float min, dist;
-    int menorN;
-    int lin,col;
-    int tempMap;
-    int temp1, temp2;
-    temp1 = 1;
-    #pragma omp parallel for shared(result)
-    for (int i = 0 ; i < data.rows() ; i++){
-        min = algorithm_->CalculateNeuronDistance(codebook_->GetWeights().row(1), data.row(i));
-        menorN = 0;
-        for (int j = 0; j < map_x*map_y ; j++ ){
-            dist = algorithm_->CalculateNeuronDistance(codebook_->GetWeights().row(j), data.row(i));
-            if (dist < min){
-                menorN = j;
-                min = dist;
+    Eigen::MatrixXf weights = codebook_->GetWeights();
+    int lin = 0;
+    int col = 0;
+    float min = 99999.0f;
+    float dist = 99999.0f;
+//    int menorN = 0;
+#pragma omp parallel for firstprivate(min) private(lin, col, dist)
+        for (int i = 0 ; i < data.rows() ; i++){
+            for (int j = 0; j < map_x*map_y ; j++ ){
+                NInv(j,lin,col);
+                int temp = (int) (watershed(lin,col) - 0.5f);
+                if (temp > -1) {
+                    dist = (weights.row(j) - data.row(i)).squaredNorm();
+                    if (dist < min){
+                        result(i) = watershed(lin,col);
+                        min = dist;
+                    }
+                }
             }
+            min = 9999.0f;
+            //tempMap = immersion(lin,col);
+            //NInv(tempMap,lin,col);
         }
-        NInv(menorN,lin,col);
-        tempMap = immersion(lin,col);
-        NInv(tempMap,lin,col);
-        temp1 = watershed(lin,col);
-        result(i) = temp1;
-    }
-
+//    std::cout << result << std::endl;
     return result;
 }
 
@@ -626,7 +628,8 @@ void Som::CalculateAllMatrix() {
     ClusterMap();
     class_ = SimulateClusteringParallel(data_, ustarw_, imm_);
     //class_ = SimulateWithNeurons();
-    io->SaveVector(class_, "simulationP");
+    //io->SaveVector(class_, "simulationP");
+    std::cout << " Data Size: " << data_.rows() << std::endl;
     delete io;
     delete w;
 }
