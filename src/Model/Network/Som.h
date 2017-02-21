@@ -15,6 +15,7 @@ protected:
 	Eigen::MatrixXf grid_;
 	Eigen::MatrixXf umat_;
 	Eigen::MatrixXf pmat_;
+    Eigen::MatrixXf ustarmat_;
     Eigen::MatrixXf imm_;
     Eigen::MatrixXf ustarw_;
     Eigen::VectorXf class_;
@@ -33,6 +34,7 @@ public:
 	Som(Eigen::MatrixXf data, std::shared_ptr<Parameter> params, Som::Topology topology = Topology::RETANGULAR);
 	void Train();
 	Eigen::MatrixXf GetUMatrix() {return umat_;}
+    Eigen::MatrixXf GetUStarMatrix() {return ustarmat_;}
 	Eigen::MatrixXf CalculateImmersion(Eigen::MatrixXf &pmat, Eigen::MatrixXf &umat);
 	Eigen::VectorXf SimulateClustering(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion);
 	Eigen::VectorXf SimulateClusteringParallel(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion);

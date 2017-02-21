@@ -20,7 +20,7 @@ class Watershed {
 public:
 	Watershed();
 	Eigen::MatrixXf transform(const Eigen::MatrixXf &input);
-    Eigen::MatrixXf transform_v2(const Eigen::MatrixXf & input);
+    Eigen::MatrixXf transform_v2(const Eigen::MatrixXf & input, int discretizarion_level = 1);
 	std::vector<pos> vizinhanca4(int lin, int col, int linhas, int colunas);
 	virtual ~Watershed();
 };

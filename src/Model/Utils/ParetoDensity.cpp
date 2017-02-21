@@ -8,6 +8,7 @@
 #include <Model/Utils/ParetoDensity.h>
 #include "Algorithm.h"
 #include <memory>
+#include <iostream>
 
 ParetoDensity::ParetoDensity() {
 	// TODO Auto-generated constructor stub
@@ -20,20 +21,16 @@ ParetoDensity::~ParetoDensity() {
 
 Eigen::VectorXf ParetoDensity::CalculateDensity(Eigen::MatrixXf &data, Eigen::MatrixXf &centers, double radius)
 {
-	int dataLength = data.rows();
 	Eigen::VectorXf result = Eigen::VectorXf::Zero(centers.rows());
 	std::shared_ptr<Algorithm> algo;
 	algo.reset(new Algorithm());
+    std::cout << "radius: " << radius << std::endl;
+    std::cout << "max neuron: " << centers.maxCoeff() << std::endl;
+    radius = radius;
 #pragma omp parallel for
-	for(int i = 0; i < centers.rows(); ++i)
-	{
-		auto temp = centers.row(i);
-		for (int j = 0; j < dataLength; ++j)
-		{
-			auto tempD = data.row(j);
-			float distance = (temp - tempD).squaredNorm();
-			if (distance <= radius)
-			{
+    for(int i = 0; i < centers.rows(); ++i) {
+        for (int j = 0; j < data.rows(); ++j) {
+            if ((centers.row(i) - data.row(j)).squaredNorm() <= radius) {
 				result(i) += 1;
 			}
 		}

@@ -196,12 +196,13 @@ Eigen::MatrixXf Watershed::transform(const Eigen::MatrixXf &input) {
 	return imo;
 }
 
-Eigen::MatrixXf Watershed::transform_v2(const Eigen::MatrixXf & input) {
+Eigen::MatrixXf Watershed::transform_v2(const Eigen::MatrixXf & input, int discretizarion_level) {
     //TODO: verifica se precisa transformar para escala cinza
-    Eigen::MatrixXf data(input*20);
+    std::cout << "discretization: " << discretizarion_level << std::endl;
+    Eigen::MatrixXf data(input*discretizarion_level);
     Eigen::MatrixXf lab(data.rows(), data.cols());
     Eigen::MatrixXf dist(data.rows(), data.cols());
-    int units = data.cols() * data.cols();
+    int units = data.rows() * data.cols();
     int curlab = 0;
 
     int hmin = (int)data.minCoeff();

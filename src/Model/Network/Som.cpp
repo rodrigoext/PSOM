@@ -331,12 +331,14 @@ Eigen::MatrixXf Som::CalculateUStarMatrix(Eigen::MatrixXf &umat, Eigen::MatrixXf
 	float plow;
 
 	float meanp,maxp,maxp2;
-	meanp = pmat.sum() / (linhas*colunas);
+    meanp = pmat.mean();
 	maxp = pmat.maxCoeff();
 	for (int l = 0; l < linhas; l++){
 		for (int c = 0; c < colunas; c++){
-			plow = CalculatePlow(pmat,l,c);
-			ustarmat(l,c) = umat(l,c) * plow;
+//			plow = CalculatePlow(pmat,l,c);
+//			ustarmat(l,c) = umat(l,c) * plow;
+            float scaled_factor = (1 + (pmat(l, c) - pmat.mean()) / (pmat.mean() - pmat.maxCoeff()));
+            ustarmat(l, c) = umat(l, c) * scaled_factor;
 		}
 	}
 	std::cout << "OK!" << std::endl;
@@ -362,7 +364,7 @@ float Som::CalculatePlow(Eigen::MatrixXf &pmat, int li, int ci)
 
 Eigen::MatrixXf Som::CalculateUMatrixUltsch()
 {
-	std::cout << "Calculating U-Matrix Ultsch... ";
+    std::cout << "Calculating U-Matrix Ultsch... " << map_x << " | " << map_y << std::endl;
 	Eigen::MatrixXf umatriz(map_x, map_y);
 	int na, nl,counter;
 	float du,di;
@@ -371,21 +373,19 @@ Eigen::MatrixXf Som::CalculateUMatrixUltsch()
 	float dtemp;
 	int unidades = map_x*map_y;
 	for (int i = 0; i < unidades; i++) {
-		NInv(i, na, nl);
+        NInv(i, nl, na);
 		counter = 0;
 		du = 0;
 
 		for (int v1 = -1; v1 < 2; v1++){
 			if (v1==0)
 				v1++;
-			linha = na + v1;
+            linha = nl + v1;
 			if (linha >= 0 and linha < map_x){
 				//dtemp = d(i,n(linha,nl));
-				dtemp = (codebook_->GetWeights().row(i) - codebook_->GetWeights().row(linha+nl*map_x)).squaredNorm();
+                std::cout << "linha: " << nl << " | " << linha+na*map_x << std::endl;
+                dtemp = (codebook_->GetWeights().row(i) - codebook_->GetWeights().row(linha+na*map_x)).squaredNorm();
 				du += dtemp;
-
-				if (max < dtemp)
-					max = dtemp;
 				counter++ ;
 			}
 		}
@@ -393,18 +393,16 @@ Eigen::MatrixXf Som::CalculateUMatrixUltsch()
 		for (int v1 = -1; v1 < 2; v1++){
 			if (v1==0)
 				v1++;
-			coluna = nl + v1;
+            coluna = na + v1;
 			if (coluna >= 0 and coluna < map_y){
 				//dtemp = d(i,n(na,coluna));
-				dtemp = (codebook_->GetWeights().row(i) - codebook_->GetWeights().row(na+coluna*map_x)).squaredNorm();
+                std::cout << "coluna: " << na << " | "  << coluna+nl*map_y << std::endl;
+                dtemp = (codebook_->GetWeights().row(i) - codebook_->GetWeights().row(nl+coluna*map_x)).squaredNorm();
 				du += dtemp;
-
-				if (max < dtemp)
-					max = dtemp;
 				counter++ ;
 			}
 		}
-		umatriz(na,nl) = (du / counter);
+        umatriz(nl,na) = (du / counter);
 	}
 	std::cout << "OK!" << std::endl;
 	IO * io = new IO();
@@ -547,7 +545,7 @@ void Som::ClusterMap() {
         classesIm(n) = imm_(row, col);
         classes(n) = ustarw_(row, col);
     }
-    std::cout << "saving" << std::endl;
+    //std::cout << "saving" << std::endl;
     IO io;
     io.SaveVector(classesIm, "classesIm");
     io.SaveVector(classes, "classes");
@@ -558,29 +556,27 @@ Eigen::VectorXf Som::SimulateClusteringParallel(Eigen::MatrixXf &data, Eigen::Ma
     Eigen::VectorXf result(data.rows());
 
     Eigen::MatrixXf weights = codebook_->GetWeights();
-    int lin = 0;
-    int col = 0;
-    float min = 99999.0f;
-    float dist = 99999.0f;
+    int neurons = map_x*map_y;
 //    int menorN = 0;
-#pragma omp parallel for firstprivate(min) private(lin, col, dist)
+#pragma omp parallel for
         for (int i = 0 ; i < data.rows() ; i++){
-            for (int j = 0; j < map_x*map_y ; j++ ){
+            int lin = 0;
+            int col = 0;
+            int min_lin = 0;
+            int min_col = 0;
+            float min = 99999.0f; //Reset min to next loop
+            for (int j = 0; j < neurons; j++ ){
                 NInv(j,lin,col);
                 int temp = (int) (watershed(lin,col) - 0.5f);
-                if (temp > -1) {
-                    dist = (weights.row(j) - data.row(i)).squaredNorm();
-                    if (dist < min){
-                        result(i) = watershed(lin,col);
-                        min = dist;
-                    }
+                float dist = (weights.row(j) - data.row(i)).squaredNorm();
+                if (temp > -1 && dist < min) {
+                    min = dist;
+                    min_lin = lin;
+                    min_col = col;
                 }
             }
-            min = 9999.0f;
-            //tempMap = immersion(lin,col);
-            //NInv(tempMap,lin,col);
+            result(i) = watershed(min_lin, min_col);
         }
-//    std::cout << result << std::endl;
     return result;
 }
 
@@ -604,16 +600,21 @@ void Som::CalculateAllMatrix() {
     std::cout << "Calculating..." << std::endl;
     IO * io = new IO();
     Algorithm * algo = new Algorithm();
-
+    int discr_temp = static_cast<int>(data_.rows()*0.02);
+    std::cout << "discr level: " << params_->discretization_level_ << std::endl;
     //Load for test
     //Eigen::MatrixXf ustar_load = io->LoadCSV("ustar_bom");
-
     Eigen::MatrixXf umu = CalculateUMatrixUltsch();
-    Eigen::MatrixXf ustar = CalculateUStarMatrix(umu, pmat_) * 10;
-    io->SaveMatrix(ustar, "ustar");
+    umat_ = umu *(map_x+map_y)*params_->discretization_level_;
+    io->SaveMatrix(umat_, "um");
+    Eigen::MatrixXf ustar = CalculateUStarMatrix(umu, pmat_);
+    ustarmat_ = ustar*(map_x+map_y)*params_->discretization_level_;
+    io->SaveMatrix(ustarmat_, "ustar");
     Watershed *w = new Watershed();
     //Eigen::MatrixXf ustar_w2 = w->transform_v2(algo->FilterMedian(ustar));
-    ustarw_ = w->transform_v2(ustar);
+    std::cout << "antes umultsch" << std::endl;
+    ustarw_ = w->transform_v2(ustarmat_);
+    std::cout << "depois umultsch" << std::endl;
     //ustar_w = w->transform(ustar_load);
     //Eigen::MatrixXf um_w = w->transform(umu);
     io->SaveMatrix(ustarw_, "ustarw");
@@ -622,10 +623,10 @@ void Som::CalculateAllMatrix() {
     std::cout << "Calculating Immersion" << std::endl;
     imm_ = CalculateImmersion(pmat_, ustar);
     io->SaveMatrix(imm_, "immersion");
+    ClusterMap();
     std::cout << "Simulating" << std::endl;
     //Eigen::VectorXf sim = SimulateClustering(data_, ustar_w, imm);
     //io->SaveVector(sim, "simulation");
-    ClusterMap();
     class_ = SimulateClusteringParallel(data_, ustarw_, imm_);
     //class_ = SimulateWithNeurons();
     //io->SaveVector(class_, "simulationP");
