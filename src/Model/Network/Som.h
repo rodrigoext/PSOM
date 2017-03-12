@@ -8,6 +8,7 @@
 
 #include <Eigen>
 #include <memory>
+#include <map>
 class Som : public NeuralNetwork
 {
 protected:
@@ -18,11 +19,13 @@ protected:
     Eigen::MatrixXf ustarmat_;
     Eigen::MatrixXf imm_;
     Eigen::MatrixXf ustarw_;
+    Eigen::VectorXi bmu_;
     Eigen::VectorXf class_;
 	std::shared_ptr<Parameter> params_;
 	std::shared_ptr<Codebook> codebook_;
 	std::shared_ptr<Algorithm> algorithm_;
-	int map_x, map_y;
+    int map_x, map_y;
+    bool bmu_calculared;
 
 public:
 	enum Topology
@@ -35,12 +38,15 @@ public:
 	void Train();
 	Eigen::MatrixXf GetUMatrix() {return umat_;}
     Eigen::MatrixXf GetUStarMatrix() {return ustarmat_;}
+    Eigen::MatrixXf GetUStarMatrixWatershed() {return ustarw_;}
 	Eigen::MatrixXf CalculateImmersion(Eigen::MatrixXf &pmat, Eigen::MatrixXf &umat);
 	Eigen::VectorXf SimulateClustering(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion);
 	Eigen::VectorXf SimulateClusteringParallel(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion);
     Eigen::VectorXf SimulateWithNeurons();
+    void Simulate();
     void ClusterMap();
 	void CalculateAllMatrix();
+    void UpdateDiscretizarion(int value);
     Eigen::VectorXf GetClassification() { return class_; }
 	virtual ~Som();
 private:

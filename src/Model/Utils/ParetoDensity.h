@@ -12,6 +12,7 @@
 class ParetoDensity {
 public:
 	ParetoDensity();
-	Eigen::VectorXf CalculateDensity(Eigen::MatrixXf &data, Eigen::MatrixXf &centers, double radius);
+
+    Eigen::VectorXd CalculateDensity(Eigen::MatrixXf &data, Eigen::MatrixXf &centers, double radius);
 	virtual ~ParetoDensity();
 };

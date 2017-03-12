@@ -28,7 +28,6 @@ MatrixXf IO::LoadData(const char * file_name, bool normalize)
 
 vector<vector<float> > IO::ReadData(const char * file_name)
 {
-	vector<vector<string> > data;
 	vector<vector<float> > data_float;
 
 	ifstream infile;
@@ -101,6 +100,15 @@ void IO::SaveVector(Eigen::VectorXf &data, std::string file_name)
 	{
 		file << data.format(CSVFormat);
 	}
+}
+
+void IO::SaveVectorDouble(Eigen::VectorXd &data, std::string file_name)
+{
+    std::ofstream file("../kohonen/src/Data/"+file_name+".csv");
+    if (file.is_open())
+    {
+        file << data.format(CSVFormat);
+    }
 }
 
 void IO::MapMinMax(Eigen::MatrixXf &data)

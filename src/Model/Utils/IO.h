@@ -10,6 +10,7 @@ public:
 	void SaveUMAT(Eigen::MatrixXf &data);
 	void SaveMatrix(Eigen::MatrixXf &data, std::string file_name);
 	void SaveVector(Eigen::VectorXf &data, std::string file_name);
+    void SaveVectorDouble(Eigen::VectorXd &data, std::string file_name);
 	void MapMinMax(Eigen::MatrixXf &data);
 	Eigen::MatrixXf LoadCSV(std::string file_name);
 	~IO();

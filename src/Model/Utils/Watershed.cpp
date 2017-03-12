@@ -27,8 +27,8 @@ Watershed::~Watershed() {
 Eigen::MatrixXf Watershed::transform(const Eigen::MatrixXf &input) {
     Eigen::MatrixXf imi = input*20;
 
-	std::cout << "input" << std::endl;
-	std::cout << imi << std::endl;
+//	std::cout << "input" << std::endl;
+//	std::cout << imi << std::endl;
 
 	int rows = imi.rows();
 	int cols = imi.cols();
@@ -43,8 +43,8 @@ Eigen::MatrixXf Watershed::transform(const Eigen::MatrixXf &input) {
 			imi(l, c) = (int) ((imi(l, c) + 1));
 		}
 	}
-	std::cout << imi.rows() << " || " << imi.cols() << std::endl;
-	std::cout << imi << std::endl;
+//	std::cout << imi.rows() << " || " << imi.cols() << std::endl;
+//	std::cout << imi << std::endl;
 	std::queue<pos> fifo;
 
 	Eigen::MatrixXf imo(imi);
@@ -80,7 +80,7 @@ Eigen::MatrixXf Watershed::transform(const Eigen::MatrixXf &input) {
 				}
 			}
 		}
-        std::cout << " (" << row_min << "|" << col_min << ") ";
+//        std::cout << " (" << row_min << "|" << col_min << ") ";
 		pos p;
 		p.row = row_min;
 		p.col = col_min;
@@ -91,12 +91,12 @@ Eigen::MatrixXf Watershed::transform(const Eigen::MatrixXf &input) {
 		col_min = 0;
 		temp_min = temp_mat(0, 0);
 	}
-    std::cout << std::endl;
+//    std::cout << std::endl;
 
     //std::cout << "temp_mat" << std::endl;
     //std::cout << temp_mat << std::endl;
 
-    std::cout << "sorted: " << hmin << " | " << hmax  << std::endl;
+//    std::cout << "sorted: " << hmin << " | " << hmax  << std::endl;
 
 	int last_pixel = 0;
 	pos position;
@@ -287,14 +287,14 @@ Eigen::MatrixXf Watershed::transform_v2(const Eigen::MatrixXf & input, int discr
                     //q belongs to an existing basin or to watersheds
                     if (lab(q.row, q.col) > 0) {
                         if (lab(p.row, p.col) == MASK || lab(p.row, p.col) == WSHED) {
-                            std::cout << "lab atrib" << std::endl;
+//                            std::cout << "lab atrib" << std::endl;
                             lab(p.row, p.col) = lab(q.row, q.col);
                         } else if (lab(p.row, p.col) != lab(q.row, q.col)) {
-                            std::cout << "lab atrib" << std::endl;
+//                            std::cout << "lab atrib" << std::endl;
                             lab(p.row, p.col) = WSHED;
                         }
                     } else if (lab(p.row, p.col) == MASK) {
-                        std::cout << "lab atrib" << std::endl;
+//                        std::cout << "lab atrib" << std::endl;
                         lab(p.row, p.col) = WSHED;
                     }
                 } else if (lab(q.row, q.col) == MASK && dist(q.row, q.col) == 0) {
@@ -313,7 +313,7 @@ Eigen::MatrixXf Watershed::transform_v2(const Eigen::MatrixXf & input, int discr
             if (lab(p2.row, p2.col) == MASK) {
                 curlab = curlab + 1;
                 fifo.push(p2);
-                std::cout << "lab atrib" << std::endl;
+//                std::cout << "lab atrib" << std::endl;
                 lab(p2.row, p2.col) = curlab;
                 while (!fifo.empty()) {
                     pos q = fifo.front();

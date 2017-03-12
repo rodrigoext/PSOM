@@ -19,15 +19,12 @@ ParetoDensity::~ParetoDensity() {
 	// TODO Auto-generated destructor stub
 }
 
-Eigen::VectorXf ParetoDensity::CalculateDensity(Eigen::MatrixXf &data, Eigen::MatrixXf &centers, double radius)
+Eigen::VectorXd ParetoDensity::CalculateDensity(Eigen::MatrixXf &data, Eigen::MatrixXf &centers, double radius)
 {
-	Eigen::VectorXf result = Eigen::VectorXf::Zero(centers.rows());
+    Eigen::VectorXd result = Eigen::VectorXd::Zero(centers.rows());
 	std::shared_ptr<Algorithm> algo;
 	algo.reset(new Algorithm());
-    std::cout << "radius: " << radius << std::endl;
-    std::cout << "max neuron: " << centers.maxCoeff() << std::endl;
-    radius = radius;
-#pragma omp parallel for
+    #pragma omp parallel for
     for(int i = 0; i < centers.rows(); ++i) {
         for (int j = 0; j < data.rows(); ++j) {
             if ((centers.row(i) - data.row(j)).squaredNorm() <= radius) {

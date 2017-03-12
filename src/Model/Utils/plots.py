@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.cm as cm
 import numpy as np
 from numpy import genfromtxt
@@ -22,8 +23,9 @@ classesI = genfromtxt('../../Data/classesIm.csv')
 #plt.figure()
 #plt.scatter(data[:,0], data[:,1], c=classesP, marker='o')
 #plt.draw()
-plt.figure()
-plt.scatter(neurons[:,0], neurons[:,1], c=classesN, marker='o')
+fig = plt.figure()
+ax = Axes3D(fig)
+ax.scatter(neurons[:,0], neurons[:,1], neurons[:,2], 'z', 60, c=classesN, marker='o')
 plt.draw()
 plt.figure()
 plt.scatter(neurons[:,0], neurons[:,1], c=classesI, marker='o')
