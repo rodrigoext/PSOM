@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include <Eigen/Core>
+#include <Eigen>
 #include "Model/Network/Codebook.h"
 #include "Model/Utils/IO.h"
 

@@ -7,7 +7,7 @@
 #include "Model/Utils/IO.h"
 #include "Model/Utils/Parameter.h"
 
-#include <Eigen/Core>
+#include <Eigen>
 
 int main(int argc, char *argv[])
 {
@@ -15,10 +15,10 @@ int main(int argc, char *argv[])
 	//t->TestCodebookGeneration();
 
 	IO * io = new IO();
-	Eigen::MatrixXf data = io->LoadData("../PSOM/src/Data/twod.csv", true);
+	Eigen::MatrixXf data = io->LoadData("src/Data/twod.csv", true);
 
 	Parameter * params;
-    params = new Parameter(10, 10, 30000, 0.1f, true);
+    params = new Parameter(20, 20, 60000, 0.1f, true);
 	//params = new Parameter(14, 11, 200, 0.08f);
 	Som * som = new Som(data, std::make_shared<Parameter>(*params));
 	som->CalculateAllMatrix();

@@ -5,7 +5,7 @@ import numpy as np
 from numpy import genfromtxt
 import matplotlib.cbook as cbook
 
-#data = genfromtxt('../../Data/data.csv', delimiter=',')
+data = genfromtxt('../../Data/data.csv', delimiter=',')
 neurons = genfromtxt('../../Data/codebook.csv', delimiter=',')
 ustar = genfromtxt('../../Data/ustar.csv', delimiter=',')
 um = genfromtxt('../../Data/um.csv', delimiter=',')
@@ -20,13 +20,13 @@ classesI = genfromtxt('../../Data/classesIm.csv')
 
 #plt.scatter(data[:,0], data[:,1], c=classesP, marker='o')
 #plt.show(block='False')
-#plt.figure()
-#plt.scatter(data[:,0], data[:,1], c=classesP, marker='o')
+plt.figure()
+plt.scatter(data[:,0], data[:,1], c=classesP, marker='o')
 #plt.draw()
-fig = plt.figure()
-ax = Axes3D(fig)
-ax.scatter(neurons[:,0], neurons[:,1], neurons[:,2], 'z', 60, c=classesN, marker='o')
-plt.show()
+#fig = plt.figure()
+#ax = Axes3D(fig)
+#ax.scatter(neurons[:,0], neurons[:,1], neurons[:,2], 'z', 60, c=classesN, #marker='o')
+plt.draw()
 plt.figure()
 plt.scatter(neurons[:,0], neurons[:,1], c=classesI, marker='o')
 plt.draw()

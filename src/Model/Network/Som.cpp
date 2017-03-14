@@ -24,7 +24,6 @@ Som::Som(Eigen::MatrixXf data, std::shared_ptr<Parameter> params, Som::Topology 
 	map_y = params_->map_y_;
     class_.resize(data_.rows());
     bmu_.resize(data_.rows());
-    bmu_calculared = false;
 	algorithm_.reset(new Algorithm());
 	algorithm_->SetTotalEpoch(params_->train_len_);
 	codebook_.reset(new Codebook(params_->map_x_, params_->map_y_, data_.cols()));
@@ -321,7 +320,7 @@ void Som::CalculatePMatrix()
 	io->SaveMatrix(pmat_, "pmatrix");
 	io->SaveMatrix(data_, "data");
 	delete io;
-	std::cout << pmat_ << std::endl;
+    //std::cout << pmat_ << std::endl;
 }
 
 
@@ -419,20 +418,35 @@ Eigen::MatrixXf Som::CalculateImmersion(Eigen::MatrixXf &pmat, Eigen::MatrixXf &
     //std::cout << umattemp << std::endl;
 	int temp = 0;
 	int ltemp,ctemp;
-	for (int l = 0 ; l < map_x ; l++){
-		for (int c = 0; c < map_y; c++){
-			temp = CalculateImersion(l,c,umattemp);
-			NInv(temp,ltemp,ctemp);
-			result(l,c) = CalculateImersion(ltemp,ctemp,pmat);
-		}
-	}
-	return result;
+    for (int l = 0 ; l < map_x ; l++){
+        for (int c = 0; c < map_y; c++){
+            aaaaa_ = false;
+            temp = CalculateImersion(l,c,umattemp);
+            NInv(temp,ltemp,ctemp);
+            aaaaa_ = true;
+            result(l,c) = CalculateImersion(ltemp,ctemp,pmat);
+            //std::cout << ltemp << ", " << ctemp << " = " << temp << " > " << result(l, c) << " | ";
+        }
+        std::cout << std::endl;
+    }
+/*    for (int n = 0; n < map_x*map_y; ++n) {
+        int row, col;
+        NInv(n, row, col);
+        aaaaa_ = false;
+        temp = CalculateImersion(row, col, umattemp);
+        NInv(temp,ltemp,ctemp);
+        aaaaa_ = true;
+        result(row,col) = CalculateImersion(ltemp,ctemp,pmat);
+        std::cout << std::endl;
+    }
+    return result;
+    */
 }
 
 int Som::CalculateImersion(int linha, int coluna, Eigen::MatrixXf &mat) {
 	double max;
 
-	int maxIt = (map_x*map_y)/2;
+    int maxIt = (map_x*map_y)/2;
 	int itAtual = 0;
 
     int linhaAtual = linha;
@@ -447,10 +461,12 @@ int Som::CalculateImersion(int linha, int coluna, Eigen::MatrixXf &mat) {
 		lverif = linhaAtual - 1;
 		if(lverif >= 0){
 			if(mat(linhaAtual,colunaAtual) <= mat(lverif,colunaAtual)){
-				max = mat(lverif,colunaAtual);
-				linhaFinal = lverif;
-				colunaFinal = colunaAtual;
-			}
+                if (mat(lverif,colunaAtual) >= max){
+                    max = mat(lverif,colunaAtual);
+                    linhaFinal = lverif;
+                    colunaFinal = colunaAtual;
+                }
+            }
 		}
 
 		lverif = linhaAtual + 1;
@@ -487,10 +503,14 @@ int Som::CalculateImersion(int linha, int coluna, Eigen::MatrixXf &mat) {
 			break;
 
         if (linhaFinal==0 or colunaFinal==0){
-			linhaFinal = linhaAtual;
-			colunaFinal = colunaAtual;
-			break;
-		}
+            if (aaaaa_)
+                std::cout << linhaFinal << ", " << colunaFinal;
+            linhaFinal = linhaAtual;
+            colunaFinal = colunaAtual;
+            if (aaaaa_)
+                std::cout << " <<>> " << linhaFinal << ", " << colunaFinal << " | ";
+            break;
+        }
 
 		linhaAtual = linhaFinal;
 		colunaAtual = colunaFinal;
@@ -499,7 +519,7 @@ int Som::CalculateImersion(int linha, int coluna, Eigen::MatrixXf &mat) {
 			break;
 	}
 
-	return linhaFinal+colunaFinal*map_x;
+    return linhaFinal+colunaFinal*map_x;
 }
 
 Eigen::VectorXf Som::SimulateClustering(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion)
@@ -567,41 +587,29 @@ Eigen::VectorXf Som::SimulateClusteringParallel(Eigen::MatrixXf &data, Eigen::Ma
 
     std::cout << watershed_temp << std ::endl;
 
-    if (!bmu_calculared) {
-        Eigen::MatrixXf weights = codebook_->GetWeights();
-        int neurons = map_x*map_y;
-    #pragma omp parallel for
-        for (int i = 0 ; i < data.rows() ; i++){
-            int lin = 0;
-            int col = 0;
-            int min_lin = 0;
-            int min_col = 0;
-            int bmu = 0;
-            float min = 99999.0f; //Reset min to next loop
-            for (int j = 0; j < neurons; j++ ){
-                NInv(j,lin,col);
-                int temp = (int) (watershed_temp(lin,col) - 0.5f);
-                float dist = (weights.row(j) - data.row(i)).squaredNorm();
-                if (temp > -1 && dist < min) {
-                    min = dist;
-                    min_lin = lin;
-                    min_col = col;
-                    bmu = j;
-                }
+    Eigen::MatrixXf weights = codebook_->GetWeights();
+    int neurons = map_x*map_y;
+#pragma omp parallel for
+    for (int i = 0 ; i < data.rows() ; i++){
+        int lin = 0;
+        int col = 0;
+        int min_lin = 0;
+        int min_col = 0;
+        int bmu = 0;
+        float min = 99999.0f; //Reset min to next loop
+        for (int j = 0; j < neurons; j++ ){
+            NInv(j,lin,col);
+            int temp = (int) (watershed_temp(lin,col) - 0.5f);
+            float dist = (weights.row(j) - data.row(i)).squaredNorm();
+            if (temp > -1 && dist < min) {
+                min = dist;
+                min_lin = lin;
+                min_col = col;
+                bmu = j;
             }
-            class_(i) = watershed_temp(min_lin, min_col);
-            bmu_(i) = bmu;
         }
-        bmu_calculared = true;
-    } else {
-        std::cout << "bmu already calculated..." << std::endl;
-    #pragma omp parallel for
-        for (int i = 0; i < data.rows(); ++i) {
-            int lin = 0;
-            int col = 0;
-            NInv(bmu_(i),lin,col);
-            class_(i) = watershed_temp(lin, col);
-        }
+        class_(i) = watershed_temp(min_lin, min_col);
+        bmu_(i) = bmu;
     }
     return class_;
 }
@@ -649,12 +657,12 @@ void Som::CalculateAllMatrix() {
     //Eigen::MatrixXf ustar_load = io->LoadCSV("ustar_bom");
 
     Eigen::MatrixXf umu = CalculateUMatrixUltsch();
-    umat_ = umu*params_->discretization_level_;
+    umat_ = algorithm_->FilterMedian(umu)*params_->discretization_level_;
     io->SaveMatrix(umat_, "um");
 
     Eigen::MatrixXf ustar = CalculateUStarMatrix(umu, pmat_);
-    ustarmat_ = ustar*(map_x+map_y)*params_->discretization_level_;
-    //ustarmat_ = ustar * params_->discretization_level_;
+    //ustarmat_ = ustar*(map_x+map_y)*params_->discretization_level_;
+    ustarmat_ = ustar * params_->discretization_level_ * 100;
     ustarmat_ = algorithm_->FilterMedian(ustarmat_);
     io->SaveMatrix(ustarmat_, "ustar");
 
@@ -663,14 +671,20 @@ void Som::CalculateAllMatrix() {
     io->SaveMatrix(ustarw_, "ustarw");
 
     std::cout << "Calculating Immersion" << std::endl;
-    imm_ = CalculateImmersion(pmat_, ustar);
+    imm_ = CalculateImmersion(pmat_, umat_);
     io->SaveMatrix(imm_, "immersion");
 
     ClusterMap();
     std::cout << "Simulating" << std::endl;
     class_ = SimulateClusteringParallel(data_, ustarw_, imm_);
-
+    io->SaveVector(class_, "simulationP");
     std::cout << " Data Size: " << data_.rows() << std::endl;
+
+    for (int i = 0 ; i < map_x*map_y; ++i) {
+            int l, c;
+            NInv(i, l, c);
+            std::cout << l << ", " << c << " | ";
+    }
 
     delete io;
     delete w;
