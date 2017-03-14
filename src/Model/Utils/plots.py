@@ -14,7 +14,7 @@ immersion = genfromtxt('../../Data/immersion.csv', delimiter=',')
 pmatrix = genfromtxt('../../Data/pmatrix.csv', delimiter=',')
 #classes = genfromtxt('../../Data/simulation.csv')
 classesP = genfromtxt('../../Data/simulationP.csv')
-classesN = genfromtxt('../../Data/classes.csv')
+#classesN = genfromtxt('../../Data/classes.csv')
 classesI = genfromtxt('../../Data/classesIm.csv')
 #print(classesP)
 

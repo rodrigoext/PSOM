@@ -25,7 +25,6 @@ protected:
 	std::shared_ptr<Codebook> codebook_;
 	std::shared_ptr<Algorithm> algorithm_;
     int map_x, map_y;
-    bool aaaaa_;
 
 public:
 	enum Topology

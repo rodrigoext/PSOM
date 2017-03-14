@@ -311,11 +311,12 @@ void Som::CalculatePMatrix()
 	ParetoDensity pd;
 	Eigen::MatrixXf weigths = codebook_->GetWeights();
     Eigen::VectorXd resultP = pd.CalculateDensity(data_, weigths, umat_.maxCoeff());
-    std::cout << resultP << std::endl;
     io->SaveVectorDouble(resultP, "pmatrix_vector");
     Eigen::VectorXf resultPF = resultP.cast<float>();
     Eigen::MatrixXf p_matrix = algorithm_->Reshape(resultPF, map_x, map_y);
-    pmat_ = algorithm_->FilterMedian(p_matrix);
+    std::cout << "PMATRIX" << std::endl;
+    std::cout << p_matrix << std::endl;
+    pmat_ = p_matrix;
     //pmat_ = p_matrix;
 	io->SaveMatrix(pmat_, "pmatrix");
 	io->SaveMatrix(data_, "data");
@@ -415,111 +416,104 @@ Eigen::MatrixXf Som::CalculateImmersion(Eigen::MatrixXf &pmat, Eigen::MatrixXf &
 {
 	Eigen::MatrixXf result(pmat.rows(),pmat.cols());
     Eigen::MatrixXf umattemp = umat*-10;
+    //umattemp = algorithm_->FilterMedian(umattemp);
+    //Eigen::MatrixXf pmattemp = algorithm_->FilterMedian(pmat);
     //std::cout << umattemp << std::endl;
 	int temp = 0;
 	int ltemp,ctemp;
     for (int l = 0 ; l < map_x ; l++){
         for (int c = 0; c < map_y; c++){
-            aaaaa_ = false;
             temp = CalculateImersion(l,c,umattemp);
             NInv(temp,ltemp,ctemp);
-            aaaaa_ = true;
             result(l,c) = CalculateImersion(ltemp,ctemp,pmat);
-            //std::cout << ltemp << ", " << ctemp << " = " << temp << " > " << result(l, c) << " | ";
         }
-        std::cout << std::endl;
     }
 /*    for (int n = 0; n < map_x*map_y; ++n) {
         int row, col;
         NInv(n, row, col);
-        aaaaa_ = false;
         temp = CalculateImersion(row, col, umattemp);
         NInv(temp,ltemp,ctemp);
-        aaaaa_ = true;
         result(row,col) = CalculateImersion(ltemp,ctemp,pmat);
         std::cout << std::endl;
     }
     */
+    //std::cout << result << std::endl;
     return result;
 }
 
 int Som::CalculateImersion(int linha, int coluna, Eigen::MatrixXf &mat) {
 	double max;
 
-    int maxIt = (map_x*map_y)/2;
+    int maxIt = map_y;
 	int itAtual = 0;
 
-    int linhaAtual = linha;
-    int colunaAtual = coluna;
-    int linhaFinal = 0;
-    int colunaFinal = 0;
-	int lverif,cverif;
+    int LA = linha;
+    int CA = coluna;
+    int LF = 0;
+    int CF = 0;
+    int LV, CV;
 
 	max = mat(linha,coluna);
 
 	while (true) {
-		lverif = linhaAtual - 1;
-		if(lverif >= 0){
-			if(mat(linhaAtual,colunaAtual) <= mat(lverif,colunaAtual)){
-                if (mat(lverif,colunaAtual) >= max){
-                    max = mat(lverif,colunaAtual);
-                    linhaFinal = lverif;
-                    colunaFinal = colunaAtual;
+        LV = LA - 1;
+        if(LV >= 0){
+            if(mat(LA,CA) <= mat(LV,CA)){
+                if (mat(LV,CA) >= max){
+                    max = mat(LV,CA);
+                    LF = LV;
+                    CF = CA;
                 }
             }
 		}
 
-		lverif = linhaAtual + 1;
-		if(lverif < map_x){
-			if(mat(linhaAtual,colunaAtual) <= mat(lverif,colunaAtual))
-				if (mat(lverif,colunaAtual) >= max){
-					max = mat(lverif,colunaAtual);
-					linhaFinal = lverif;
-                    colunaFinal = colunaAtual;
+        LV = LA + 1;
+        if(LV < map_x){
+            if(mat(LA,CA) <= mat(LV,CA))
+                if (mat(LV,CA) >= max){
+                    max = mat(LV,CA);
+                    LF = LV;
+                    CF = CA;
                 }
 		}
 
-		cverif = colunaAtual - 1;
-		if(cverif >= 0){
-			if(mat(linhaAtual,colunaAtual) <= mat(linhaAtual,cverif))
-				if (mat(linhaAtual,cverif) >= max){
-					max = mat(linhaAtual,cverif);
-                    linhaFinal = linhaAtual;
-                    colunaFinal = cverif;
+        CV = CA - 1;
+        if(CV >= 0){
+            if(mat(LA,CA) <= mat(LA,CV))
+                if (mat(LA,CV) >= max){
+                    max = mat(LA,CV);
+                    LF = LA;
+                    CF = CV;
 				}
 		}
 
-		cverif = colunaAtual + 1;
-		if(cverif < map_y){
-			if(mat(linhaAtual,colunaAtual) <= mat(linhaAtual,cverif))
-				if (mat(linhaAtual,cverif) >= max){
-					max = mat(linhaAtual,cverif);
-                    linhaFinal = linhaAtual;
-                    colunaFinal = cverif;
+        CV = CA + 1;
+        if(CV < map_y){
+            if(mat(LA,CA) <= mat(LA,CV))
+                if (mat(LA,CV) >= max){
+                    max = mat(LA,CV);
+                    LF = LA;
+                    CF = CV;
 				}
 		}
 
-        if (linhaAtual==linhaFinal and colunaAtual==colunaFinal)
+        if (LA==LF and CA==CF)
 			break;
 
-        if (linhaFinal==0 or colunaFinal==0){
-            if (aaaaa_)
-                std::cout << linhaFinal << ", " << colunaFinal;
-            linhaFinal = linhaAtual;
-            colunaFinal = colunaAtual;
-            if (aaaaa_)
-                std::cout << " <<>> " << linhaFinal << ", " << colunaFinal << " | ";
+        if (LF==0 or CF==0){
+            LF = LA;
+            CF = CA;
             break;
         }
 
-		linhaAtual = linhaFinal;
-		colunaAtual = colunaFinal;
+        LA = LF;
+        CA = CF;
 
 		if (itAtual++ > maxIt)
 			break;
 	}
 
-    return linhaFinal+colunaFinal*map_x;
+    return LF+CF*map_x;
 }
 
 Eigen::VectorXf Som::SimulateClustering(Eigen::MatrixXf &data, Eigen::MatrixXf &watershed, Eigen::MatrixXf &immersion)
@@ -658,6 +652,7 @@ void Som::CalculateAllMatrix() {
 
     Eigen::MatrixXf umu = CalculateUMatrixUltsch();
     umat_ = algorithm_->FilterMedian(umu)*params_->discretization_level_;
+    //umat_ = umu * params_->discretization_level_;
     io->SaveMatrix(umat_, "um");
 
     Eigen::MatrixXf ustar = CalculateUStarMatrix(umu, pmat_);
@@ -672,6 +667,7 @@ void Som::CalculateAllMatrix() {
 
     std::cout << "Calculating Immersion" << std::endl;
     imm_ = CalculateImmersion(pmat_, umat_);
+    std::cout << imm_ << std::endl;
     io->SaveMatrix(imm_, "immersion");
 
     ClusterMap();
@@ -679,12 +675,6 @@ void Som::CalculateAllMatrix() {
     class_ = SimulateClusteringParallel(data_, ustarw_, imm_);
     io->SaveVector(class_, "simulationP");
     std::cout << " Data Size: " << data_.rows() << std::endl;
-
-    for (int i = 0 ; i < map_x*map_y; ++i) {
-            int l, c;
-            NInv(i, l, c);
-            std::cout << l << ", " << c << " | ";
-    }
 
     delete io;
     delete w;

@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
 	Eigen::MatrixXf data = io->LoadData("src/Data/twod.csv", true);
 
 	Parameter * params;
-    params = new Parameter(20, 20, 60000, 0.1f, true);
+    params = new Parameter(15, 15, 30000, 0.1f, true);
 	//params = new Parameter(14, 11, 200, 0.08f);
 	Som * som = new Som(data, std::make_shared<Parameter>(*params));
 	som->CalculateAllMatrix();

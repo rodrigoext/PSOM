@@ -335,7 +335,24 @@ Eigen::MatrixXf Watershed::transform_v2(const Eigen::MatrixXf & input, int discr
 
     std::cout << "v2 end" << std::endl;
     std::cout << lab << std::endl;
-    return lab;
+    return filter_isolate_cluster(lab);
+}
+
+Eigen::MatrixXf Watershed::filter_isolate_cluster(Eigen::MatrixXf & wt) {
+    Eigen::MatrixXf result = wt;
+    for (int i = 0; i < wt.rows(); ++i) {
+        for (int j = 0; j < wt.cols(); ++j) {
+            std::vector<pos> nn = vizinhanca4(i, j, wt.rows(), wt.cols());
+            bool all_negative = true;
+            for (pos p : nn) {
+                if (wt(p.row, p.col) > 0)
+                    all_negative = false;
+            }
+            if (all_negative)
+                result(i, j) = -2;
+        }
+    }
+    return result;
 }
 
 // Funcao vizinhanca dos pixels com conectividade 4
