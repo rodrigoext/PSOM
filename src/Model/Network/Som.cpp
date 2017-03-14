@@ -439,8 +439,8 @@ Eigen::MatrixXf Som::CalculateImmersion(Eigen::MatrixXf &pmat, Eigen::MatrixXf &
         result(row,col) = CalculateImersion(ltemp,ctemp,pmat);
         std::cout << std::endl;
     }
-    return result;
     */
+    return result;
 }
 
 int Som::CalculateImersion(int linha, int coluna, Eigen::MatrixXf &mat) {
@@ -475,8 +475,8 @@ int Som::CalculateImersion(int linha, int coluna, Eigen::MatrixXf &mat) {
 				if (mat(lverif,colunaAtual) >= max){
 					max = mat(lverif,colunaAtual);
 					linhaFinal = lverif;
-					colunaFinal = colunaAtual;
-				}
+                    colunaFinal = colunaAtual;
+                }
 		}
 
 		cverif = colunaAtual - 1;
@@ -484,8 +484,8 @@ int Som::CalculateImersion(int linha, int coluna, Eigen::MatrixXf &mat) {
 			if(mat(linhaAtual,colunaAtual) <= mat(linhaAtual,cverif))
 				if (mat(linhaAtual,cverif) >= max){
 					max = mat(linhaAtual,cverif);
-					linhaFinal = linhaAtual;
-					colunaFinal = cverif;
+                    linhaFinal = linhaAtual;
+                    colunaFinal = cverif;
 				}
 		}
 
@@ -494,8 +494,8 @@ int Som::CalculateImersion(int linha, int coluna, Eigen::MatrixXf &mat) {
 			if(mat(linhaAtual,colunaAtual) <= mat(linhaAtual,cverif))
 				if (mat(linhaAtual,cverif) >= max){
 					max = mat(linhaAtual,cverif);
-					linhaFinal = linhaAtual;
-					colunaFinal = cverif;
+                    linhaFinal = linhaAtual;
+                    colunaFinal = cverif;
 				}
 		}
 
