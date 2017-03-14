@@ -428,15 +428,15 @@ Eigen::MatrixXf Som::CalculateImmersion(Eigen::MatrixXf &pmat, Eigen::MatrixXf &
             result(l,c) = CalculateImersion(ltemp,ctemp,pmat);
         }
     }
-/*    for (int n = 0; n < map_x*map_y; ++n) {
+    for (int n = 0; n < map_x*map_y; ++n) {
         int row, col;
         NInv(n, row, col);
         temp = CalculateImersion(row, col, umattemp);
         NInv(temp,ltemp,ctemp);
         result(row,col) = CalculateImersion(ltemp,ctemp,pmat);
-        std::cout << std::endl;
+//        std::cout << std::endl;
     }
-    */
+
     //std::cout << result << std::endl;
     return result;
 }
@@ -444,7 +444,7 @@ Eigen::MatrixXf Som::CalculateImmersion(Eigen::MatrixXf &pmat, Eigen::MatrixXf &
 int Som::CalculateImersion(int linha, int coluna, Eigen::MatrixXf &mat) {
 	double max;
 
-    int maxIt = map_y;
+    int maxIt = (map_y*map_x)/2;
 	int itAtual = 0;
 
     int LA = linha;
@@ -497,8 +497,9 @@ int Som::CalculateImersion(int linha, int coluna, Eigen::MatrixXf &mat) {
 				}
 		}
 
+
         if (LA==LF and CA==CF)
-			break;
+            break;
 
         if (LF==0 or CF==0){
             LF = LA;
@@ -512,6 +513,34 @@ int Som::CalculateImersion(int linha, int coluna, Eigen::MatrixXf &mat) {
 		if (itAtual++ > maxIt)
 			break;
 	}
+
+    bool maximum = false;
+    itAtual = 0;
+    LA = linha;
+    CA = coluna;
+    LF = LA;
+    CF = CA;
+    while (!maximum && itAtual++ < maxIt) {
+        max = mat(LA, CA);
+        if((LA - 1 >= 0) && mat(LA - 1, CA) > max) {
+            LA = LA - 1;
+            max = mat(LA, CA);
+        } else if((LA + 1 < map_x) && mat(LA + 1, CA) > max) {
+            LA = LA + 1;
+            max = mat(LA, CA);
+        } else if((CA - 1 >= 0) && mat(LA, CA - 1) > max) {
+            CA = CA - 1;
+            max = mat(LA, CA);
+        } else if((CA + 1 < map_y) && mat(LA, CA + 1) > max) {
+            CA = CA + 1;
+            max = mat(LA, CA);
+        } else {
+            maximum = true;
+        }
+
+    }
+    LF = LA;
+    CF = CA;
 
     return LF+CF*map_x;
 }
@@ -666,7 +695,7 @@ void Som::CalculateAllMatrix() {
     io->SaveMatrix(ustarw_, "ustarw");
 
     std::cout << "Calculating Immersion" << std::endl;
-    imm_ = CalculateImmersion(pmat_, umat_);
+    imm_ = CalculateImmersion(pmat_, ustarmat_);
     std::cout << imm_ << std::endl;
     io->SaveMatrix(imm_, "immersion");
 

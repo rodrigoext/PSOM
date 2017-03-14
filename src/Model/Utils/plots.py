@@ -5,7 +5,8 @@ import numpy as np
 from numpy import genfromtxt
 import matplotlib.cbook as cbook
 
-data = genfromtxt('../../Data/data.csv', delimiter=',')
+has_data = False
+#data = genfromtxt('../../Data/data.csv', delimiter=',')
 neurons = genfromtxt('../../Data/codebook.csv', delimiter=',')
 ustar = genfromtxt('../../Data/ustar.csv', delimiter=',')
 um = genfromtxt('../../Data/um.csv', delimiter=',')
@@ -13,16 +14,19 @@ ustarw = genfromtxt('../../Data/ustarw.csv', delimiter=',')
 immersion = genfromtxt('../../Data/immersion.csv', delimiter=',')
 pmatrix = genfromtxt('../../Data/pmatrix.csv', delimiter=',')
 #classes = genfromtxt('../../Data/simulation.csv')
-classesP = genfromtxt('../../Data/simulationP.csv')
-#classesN = genfromtxt('../../Data/classes.csv')
+#classesP = genfromtxt('../../Data/simulationP.csv')
+classesN = genfromtxt('../../Data/classes.csv')
 classesI = genfromtxt('../../Data/classesIm.csv')
 #print(classesP)
 
-#plt.scatter(data[:,0], data[:,1], c=classesP, marker='o')
-#plt.show(block='False')
+if has_data :
+	data = genfromtxt('../../Data/data.csv', delimiter=',')
+	classesP = genfromtxt('../../Data/simulationP.csv')
+	plt.scatter(data[:,0], data[:,1], c=classesP, marker='o')
+	plt.draw()
 plt.figure()
-plt.scatter(data[:,0], data[:,1], c=classesP, marker='o')
-#plt.draw()
+plt.scatter(neurons[:,0], neurons[:,1], c=classesN, marker='o')
+plt.draw()
 #fig = plt.figure()
 #ax = Axes3D(fig)
 #ax.scatter(neurons[:,0], neurons[:,1], neurons[:,2], 'z', 60, c=classesN, #marker='o')
